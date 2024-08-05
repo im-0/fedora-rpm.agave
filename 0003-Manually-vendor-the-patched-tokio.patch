@@ -1,0 +1,24 @@
+From b9fc48e55d651c732377a35118c722854bba57a8 Mon Sep 17 00:00:00 2001
+From: Ivan Mironov <mironov.ivan@gmail.com>
+Date: Thu, 21 Dec 2023 01:17:37 +0100
+Subject: [PATCH 3/5] Manually vendor the patched tokio
+
+Cargo does not support this: https://github.com/rust-lang/cargo/issues/9172
+---
+ Cargo.toml | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/Cargo.toml b/Cargo.toml
+index 678062baafb3..9739f6902d52 100644
+--- a/Cargo.toml
++++ b/Cargo.toml
+@@ -559,5 +559,4 @@ rev = "b500cdc2a920cd5bff9e2dd974d7b97349d61464"
+ # https://github.com/tokio-rs/tokio/compare/tokio-1.29.1...solana-labs:solana-tokio:tokio-1.29.1-revert-4eed411
+ #
+ [patch.crates-io.tokio]
+-git = "https://github.com/anza-xyz/solana-tokio.git"
+-rev = "7cf47705faacf7bf0e43e4131a5377b3291fce21"
++path = "./solana-tokio/tokio"
+-- 
+2.43.0
+

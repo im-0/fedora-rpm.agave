@@ -1,0 +1,38 @@
+PATH="/opt/agave/__SUFFIX__/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+
+# Logging configuration.
+RUST_LOG="solana=info,agave=info"
+
+# Print full backtrace on panic.
+RUST_BACKTRACE="full"
+
+# Metrics configuration for Testnet.
+SOLANA_METRICS_CONFIG="host=https://metrics.solana.com:8086,db=tds,u=testnet_write,p=c4fa841aa918bf8274e3e2a44d77568d9861b3ea"
+
+# Command line options for agave-validator on Testnet.
+SERVICE_OPTS="
+    --identity /etc/agave/__SUFFIX__/validator-keypair.json
+    --ledger /var/lib/agave/__SUFFIX__/ledger
+    --known-validator 5D1fNXzvv5NjV1ysLjirC4WY92RNsVH18vjmcszZd8on
+    --known-validator 7XSY3MrYnK8vq693Rju17bbPkCN3Z7KvvfvJx4kdrsSY
+    --known-validator Ft5fbkqNa76vnsjYNwjDZUXoTWpP7VYm3mtsaQckQADN
+    --known-validator 9QxCLckBiJc783jnMvXZubK4wH86Eqqvashtrwvcsgkv
+    --only-known-rpc
+    --private-rpc
+    --rpc-bind-address 127.0.0.1
+    --rpc-port 8899
+    --entrypoint entrypoint.testnet.solana.com:8001
+    --entrypoint entrypoint2.testnet.solana.com:8001
+    --entrypoint entrypoint3.testnet.solana.com:8001
+    --expected-genesis-hash 4uhcVJyU9pJkvQyS88uRDiswHXSCkY3zQawwpjk2NsNY
+    --wal-recovery-mode skip_any_corrupted_record
+    --tip-payment-program-pubkey DCN82qDxJAQuSqHhv2BJuAgi41SPeKZB5ioBCTMNDrCC
+    --tip-distribution-program-pubkey F2Zu7QZiTYUhPd7u9ukRVwxh7B71oA3NMJcHuCHc29P2
+    --merkle-root-upload-authority GZctHpWXmsZC1YHACTGGcHhYxjdRqQvTpYkb9LMvxDib
+    --commission-bps 800
+    --relayer-url http://nyc.testnet.relayer.jito.wtf:8100
+    --block-engine-url https://ny.testnet.block-engine.jito.wtf
+    --shred-receiver-address 141.98.216.97:1002
+    --limit-ledger-size
+    --log /var/log/agave/__SUFFIX__/validator.log
+"

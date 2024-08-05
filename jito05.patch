@@ -1,0 +1,41 @@
+From 009312fcb1650dff8774c014d86a72fa5c5a3255 Mon Sep 17 00:00:00 2001
+From: buffalu <85544055+buffalu@users.noreply.github.com>
+Date: Mon, 22 Jul 2024 10:44:49 -0700
+Subject: [PATCH] Publish releases to S3 and GCS (#633) (#634)
+
+---
+ ci/publish-installer.sh | 5 +++++
+ ci/publish-tarball.sh   | 4 ++++
+ 2 files changed, 9 insertions(+)
+
+diff --git a/ci/publish-installer.sh b/ci/publish-installer.sh
+index b702e70285..2caf990037 100755
+--- a/ci/publish-installer.sh
++++ b/ci/publish-installer.sh
+@@ -35,6 +35,11 @@ cat install/agave-install-init.sh >>release.jito.wtf-install
+ 
+ echo --- GCS: "install"
+ upload-gcs-artifact "/solana/release.jito.wtf-install" "gs://jito-release/$CHANNEL_OR_TAG/install"
++
++# Jito added - releases need to support S3
++echo --- AWS S3 Store: "install"
++upload-s3-artifact "/solana/release.jito.wtf-install" "s3://release.jito.wtf/$CHANNEL_OR_TAG/install"
++
+ echo Published to:
+ ci/format-url.sh https://release.jito.wtf/"$CHANNEL_OR_TAG"/install
+ 
+diff --git a/ci/publish-tarball.sh b/ci/publish-tarball.sh
+index 9401f74915..abad4f4209 100755
+--- a/ci/publish-tarball.sh
++++ b/ci/publish-tarball.sh
+@@ -121,6 +121,10 @@ for file in "${TARBALL_BASENAME}"-$TARGET.tar.bz2 "${TARBALL_BASENAME}"-$TARGET.
+     echo --- GCS Store: "$file"
+     upload-gcs-artifact "/solana/$file" gs://jito-release/"$CHANNEL_OR_TAG"/"$file"
+ 
++    # Jito added - releases need to support S3
++    echo --- AWS S3 Store: "$file"
++    upload-s3-artifact "/solana/$file" s3://release.jito.wtf/"$CHANNEL_OR_TAG"/"$file"
++
+     echo Published to:
+     $DRYRUN ci/format-url.sh https://release.jito.wtf/"$CHANNEL_OR_TAG"/"$file"
+ 

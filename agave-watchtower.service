@@ -1,0 +1,26 @@
+[Unit]
+Description=Solana/Agave Watchtower daemon (__SUFFIX__)
+
+Wants=network-online.target
+After=network-online.target
+After=time-sync.target
+
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+EnvironmentFile=-/etc/sysconfig/agave-watchtower-__SUFFIX__
+
+Type=simple
+User=agave-__SUFFIX__
+Group=agave-__SUFFIX__
+
+LimitNOFILE=1024000
+LogRateLimitIntervalSec=0
+
+ExecStart=/opt/agave/__SUFFIX__/bin/agave-watchtower $SERVICE_OPTS
+
+Restart=always
+RestartSec=1
