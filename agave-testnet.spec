@@ -25,8 +25,8 @@
 %global base_target_cpu_mtune generic
 
 Name:       agave-%{agave_suffix}
-# git c6b0570fff9fbce477571fcb8c1b410f1e9485d2
-Version:    2.0.3
+# git 0b1143e149fdae49db2f678cbe7a986af9f6d405
+Version:    2.0.4
 Release:    1jito%{?dist}
 Summary:    Solana/Agave blockchain software (%{agave_suffix} version)
 
@@ -66,7 +66,6 @@ Source301:  https://static.rust-lang.org/dist/rust-%{rust_version}-aarch64-unkno
 
 Patch1001: jito01.patch
 Patch1002: jito02.patch
-Patch1003: jito03.patch
 Patch1004: jito04.patch
 Patch1005: jito05.patch
 
@@ -209,7 +208,6 @@ git add .
 git commit -m "import"
 git am %{PATCH1001}
 git am %{PATCH1002}
-git am %{PATCH1003}
 git am %{PATCH1004}
 git am %{PATCH1005}
 
@@ -506,5 +504,8 @@ exit 0
 
 
 %changelog
+* Tue Aug 06 2024 Ivan Mironov <mironov.ivan@gmail.com> - 2.0.4-1jito
+- Update to 2.0.4
+
 * Mon Aug 5 2024 Ivan Mironov <mironov.ivan@gmail.com> - 2.0.3-1
 - Initial packaging
