@@ -1,0 +1,74 @@
+From afa7c6b72a7adccb101a514d2fcd0c54da91afd5 Mon Sep 17 00:00:00 2001
+From: buffalu <85544055+buffalu@users.noreply.github.com>
+Date: Sun, 21 Jul 2024 13:22:01 -0700
+Subject: [PATCH] Backport #611  (#631)
+
+---
+ .../unprocessed_transaction_storage.rs        | 26 ++++++++++++++-----
+ core/src/bundle_stage.rs                      |  2 +-
+ 2 files changed, 21 insertions(+), 7 deletions(-)
+
+diff --git a/core/src/banking_stage/unprocessed_transaction_storage.rs b/core/src/banking_stage/unprocessed_transaction_storage.rs
+index ae487952c8..85aef1d331 100644
+--- a/core/src/banking_stage/unprocessed_transaction_storage.rs
++++ b/core/src/banking_stage/unprocessed_transaction_storage.rs
+@@ -21,7 +21,7 @@ use {
+     },
+     itertools::Itertools,
+     min_max_heap::MinMaxHeap,
+-    solana_bundle::BundleExecutionError,
++    solana_bundle::{bundle_execution::LoadAndExecuteBundleError, BundleExecutionError},
+     solana_measure::{measure, measure_us},
+     solana_runtime::bank::Bank,
+     solana_sdk::{
+@@ -1314,6 +1314,25 @@ impl BundleStorage {
+                         rebuffered_bundles.push(deserialized_bundle);
+                         is_slot_over = true;
+                     }
++                    Err(BundleExecutionError::ExceedsCostModel) => {
++                        // cost model buffered bundles contain most recent bundles at the front of the queue
++                        debug!(
++                            "bundle={} exceeds cost model, rebuffering",
++                            sanitized_bundle.bundle_id
++                        );
++                        self.push_back_cost_model_buffered_bundles(vec![deserialized_bundle]);
++                    }
++                    Err(BundleExecutionError::TransactionFailure(
++                        LoadAndExecuteBundleError::ProcessingTimeExceeded(_),
++                    )) => {
++                        // these are treated the same as exceeds cost model and are rebuferred to be completed
++                        // at the beginning of the next slot
++                        debug!(
++                            "bundle={} processing time exceeded, rebuffering",
++                            sanitized_bundle.bundle_id
++                        );
++                        self.push_back_cost_model_buffered_bundles(vec![deserialized_bundle]);
++                    }
+                     Err(BundleExecutionError::TransactionFailure(e)) => {
+                         debug!(
+                             "bundle={} execution error: {:?}",
+@@ -1321,11 +1340,6 @@ impl BundleStorage {
+                         );
+                         // do nothing
+                     }
+-                    Err(BundleExecutionError::ExceedsCostModel) => {
+-                        // cost model buffered bundles contain most recent bundles at the front of the queue
+-                        debug!("bundle={} exceeds cost model", sanitized_bundle.bundle_id);
+-                        self.push_back_cost_model_buffered_bundles(vec![deserialized_bundle]);
+-                    }
+                     Err(BundleExecutionError::TipError(e)) => {
+                         debug!("bundle={} tip error: {}", sanitized_bundle.bundle_id, e);
+                         // Tip errors are _typically_ due to misconfiguration (except for poh record error, bank processing error, exceeds cost model)
+diff --git a/core/src/bundle_stage.rs b/core/src/bundle_stage.rs
+index e935529df5..a5bb2ec515 100644
+--- a/core/src/bundle_stage.rs
++++ b/core/src/bundle_stage.rs
+@@ -46,7 +46,7 @@ mod bundle_reserved_space_manager;
+ pub(crate) mod bundle_stage_leader_metrics;
+ mod committer;
+ 
+-const MAX_BUNDLE_RETRY_DURATION: Duration = Duration::from_millis(10);
++const MAX_BUNDLE_RETRY_DURATION: Duration = Duration::from_millis(40);
+ const SLOT_BOUNDARY_CHECK_PERIOD: Duration = Duration::from_millis(10);
+ 
+ // Stats emitted periodically

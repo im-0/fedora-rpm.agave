@@ -1,4 +1,4 @@
-From 025f00e4726067d15e816aaa1b5d1b5797da9fbb Mon Sep 17 00:00:00 2001
+From 93fa888705663fbe2cd5b8b9c3bbafd573ef60bf Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Thu, 25 Aug 2022 17:18:46 -0500
 Subject: [PATCH] jito patch only reroute if relayer connected (#123) feat: add
@@ -971,7 +971,7 @@ index 0000000000..e31fc7fccd
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index f7ba771e1e..53ee87c228 100644
+index 11def1a44d..d2bf7aea91 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -154,7 +154,7 @@ name = "agave-ledger-tool"
@@ -2329,7 +2329,7 @@ index f7ba771e1e..53ee87c228 100644
   "lazy_static",
   "log",
   "serde",
-@@ -7899,7 +8320,7 @@ dependencies = [
+@@ -7900,7 +8321,7 @@ dependencies = [
  name = "solana-zk-keygen"
  version = "2.0.5"
  dependencies = [
@@ -2338,7 +2338,7 @@ index f7ba771e1e..53ee87c228 100644
   "clap 3.2.23",
   "dirs-next",
   "num_cpus",
-@@ -8063,7 +8484,7 @@ version = "0.2.0"
+@@ -8064,7 +8485,7 @@ version = "0.2.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "d9e8418ea6269dcfb01c712f0444d2c75542c04448b480e87de59d2865edc750"
  dependencies = [
@@ -2347,7 +2347,7 @@ index f7ba771e1e..53ee87c228 100644
   "spl-discriminator-syn",
   "syn 2.0.66",
  ]
-@@ -8074,8 +8495,8 @@ version = "0.2.0"
+@@ -8075,8 +8496,8 @@ version = "0.2.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "8c1f05593b7ca9eac7caca309720f2eafb96355e037e6d373b909a80fe7b69b9"
  dependencies = [
@@ -2358,7 +2358,7 @@ index f7ba771e1e..53ee87c228 100644
   "sha2 0.10.8",
   "syn 2.0.66",
   "thiserror",
-@@ -8133,8 +8554,8 @@ version = "0.4.1"
+@@ -8134,8 +8555,8 @@ version = "0.4.1"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "e6d375dd76c517836353e093c2dbb490938ff72821ab568b545fd30ab3256b3e"
  dependencies = [
@@ -2369,7 +2369,7 @@ index f7ba771e1e..53ee87c228 100644
   "sha2 0.10.8",
   "syn 2.0.66",
  ]
-@@ -8292,9 +8713,9 @@ version = "0.24.3"
+@@ -8293,9 +8714,9 @@ version = "0.24.3"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "1e385be0d24f186b4ce2f9982191e7101bb737312ad61c1f2f984f34bcf85d59"
  dependencies = [
@@ -2382,7 +2382,7 @@ index f7ba771e1e..53ee87c228 100644
   "rustversion",
   "syn 1.0.109",
  ]
-@@ -8311,14 +8732,25 @@ version = "0.1.0"
+@@ -8312,14 +8733,25 @@ version = "0.1.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "a7973cce6668464ea31f176d85b13c7ab3bba2cb3b77a2ed26abd7801688010a"
  
@@ -2410,7 +2410,7 @@ index f7ba771e1e..53ee87c228 100644
   "unicode-ident",
  ]
  
-@@ -8328,8 +8760,8 @@ version = "2.0.66"
+@@ -8329,8 +8761,8 @@ version = "2.0.66"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "c42f3f41a2de00b01c0aaad383c5a45241efc8b2d1eda5661812fda5f3cdcff5"
  dependencies = [
@@ -2421,7 +2421,7 @@ index f7ba771e1e..53ee87c228 100644
   "unicode-ident",
  ]
  
-@@ -8340,8 +8772,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+@@ -8341,8 +8773,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "1329189c02ff984e9736652b1631330da25eaa6bc639089ed4915d25446cbe7b"
  dependencies = [
   "proc-macro-error",
@@ -2432,7 +2432,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 2.0.66",
  ]
  
-@@ -8357,10 +8789,10 @@ version = "0.12.6"
+@@ -8358,10 +8790,10 @@ version = "0.12.6"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "f36bdaa60a83aca3921b5259d5400cbf5e90fc51931376a9bd4a0eb79aa7210f"
  dependencies = [
@@ -2446,7 +2446,7 @@ index f7ba771e1e..53ee87c228 100644
  ]
  
  [[package]]
-@@ -8468,8 +8900,8 @@ version = "0.12.0"
+@@ -8469,8 +8901,8 @@ version = "0.12.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "0ee42b4e559f17bce0385ebf511a7beb67d5cc33c12c96b7f4e9789919d9c10f"
  dependencies = [
@@ -2457,7 +2457,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 1.0.109",
  ]
  
-@@ -8526,8 +8958,8 @@ checksum = "54c25e2cb8f5fcd7318157634e8838aa6f7e4715c96637f969fabaccd1ef5462"
+@@ -8527,8 +8959,8 @@ checksum = "54c25e2cb8f5fcd7318157634e8838aa6f7e4715c96637f969fabaccd1ef5462"
  dependencies = [
   "cfg-if 1.0.0",
   "proc-macro-error",
@@ -2468,7 +2468,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 2.0.66",
  ]
  
-@@ -8538,8 +8970,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+@@ -8539,8 +8971,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "37cfd7bbc88a0104e304229fba519bdc45501a30b760fb72240342f1289ad257"
  dependencies = [
   "proc-macro-error",
@@ -2479,7 +2479,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 2.0.66",
   "test-case-core",
  ]
-@@ -8574,8 +9006,8 @@ version = "1.0.61"
+@@ -8575,8 +9007,8 @@ version = "1.0.61"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "46c3384250002a6d5af4d114f2845d37b57521033f30d5c3f46c4d70e1197533"
  dependencies = [
@@ -2490,7 +2490,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 2.0.66",
  ]
  
-@@ -8711,8 +9143,8 @@ name = "tokio-macros"
+@@ -8712,8 +9144,8 @@ name = "tokio-macros"
  version = "2.1.0"
  source = "git+https://github.com/anza-xyz/solana-tokio.git?rev=7cf47705faacf7bf0e43e4131a5377b3291fce21#7cf47705faacf7bf0e43e4131a5377b3291fce21"
  dependencies = [
@@ -2501,7 +2501,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 2.0.66",
  ]
  
-@@ -8882,6 +9314,7 @@ dependencies = [
+@@ -8883,6 +9315,7 @@ dependencies = [
   "percent-encoding 2.3.1",
   "pin-project",
   "prost",
@@ -2509,7 +2509,7 @@ index f7ba771e1e..53ee87c228 100644
   "rustls-pemfile 1.0.0",
   "tokio",
   "tokio-rustls",
-@@ -8890,6 +9323,7 @@ dependencies = [
+@@ -8891,6 +9324,7 @@ dependencies = [
   "tower-layer",
   "tower-service",
   "tracing",
@@ -2517,7 +2517,7 @@ index f7ba771e1e..53ee87c228 100644
  ]
  
  [[package]]
-@@ -8899,9 +9333,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+@@ -8900,9 +9334,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "a6fdaae4c2c638bb70fe42803a26fbd6fc6ac8c72f5c59f67ecc2a2dcabf4b07"
  dependencies = [
   "prettyplease",
@@ -2529,7 +2529,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 1.0.109",
  ]
  
-@@ -8955,8 +9389,8 @@ version = "0.1.27"
+@@ -8956,8 +9390,8 @@ version = "0.1.27"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "34704c8d6ebcbc939824180af020566b01a7c01f80641264eba0999f6c2b6be7"
  dependencies = [
@@ -2540,7 +2540,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 2.0.66",
  ]
  
-@@ -9074,12 +9508,24 @@ dependencies = [
+@@ -9075,12 +9509,24 @@ dependencies = [
   "tinyvec",
  ]
  
@@ -2565,7 +2565,7 @@ index f7ba771e1e..53ee87c228 100644
  [[package]]
  name = "unicode-xid"
  version = "0.2.2"
-@@ -9167,6 +9613,12 @@ version = "0.1.5"
+@@ -9168,6 +9614,12 @@ version = "0.1.5"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "7cf7d77f457ef8dfa11e4cd5933c5ddb5dc52a94664071951219a97710f0a32b"
  
@@ -2578,7 +2578,7 @@ index f7ba771e1e..53ee87c228 100644
  [[package]]
  name = "valuable"
  version = "0.1.0"
-@@ -9264,8 +9716,8 @@ dependencies = [
+@@ -9265,8 +9717,8 @@ dependencies = [
   "bumpalo",
   "log",
   "once_cell",
@@ -2589,7 +2589,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 2.0.66",
   "wasm-bindgen-shared",
  ]
-@@ -9288,7 +9740,7 @@ version = "0.2.92"
+@@ -9289,7 +9741,7 @@ version = "0.2.92"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "a1f8823de937b71b9460c0c34e25f3da88250760bec0ebac694b49997550d726"
  dependencies = [
@@ -2598,7 +2598,7 @@ index f7ba771e1e..53ee87c228 100644
   "wasm-bindgen-macro-support",
  ]
  
-@@ -9298,8 +9750,8 @@ version = "0.2.92"
+@@ -9299,8 +9751,8 @@ version = "0.2.92"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "e94f17b526d0a461a191c78ea52bbce64071ed5c04c9ffe424dcb38f74171bb7"
  dependencies = [
@@ -2609,7 +2609,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 2.0.66",
   "wasm-bindgen-backend",
   "wasm-bindgen-shared",
-@@ -9321,13 +9773,22 @@ dependencies = [
+@@ -9322,13 +9774,22 @@ dependencies = [
   "wasm-bindgen",
  ]
  
@@ -2633,7 +2633,7 @@ index f7ba771e1e..53ee87c228 100644
  ]
  
  [[package]]
-@@ -9633,6 +10094,12 @@ dependencies = [
+@@ -9634,6 +10095,12 @@ dependencies = [
   "linked-hash-map",
  ]
  
@@ -2646,7 +2646,7 @@ index f7ba771e1e..53ee87c228 100644
  [[package]]
  name = "zerocopy"
  version = "0.7.31"
-@@ -9648,8 +10115,8 @@ version = "0.7.31"
+@@ -9649,8 +10116,8 @@ version = "0.7.31"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "b3c129550b3e6de3fd0ba67ba5c81818f9805e58b8d7fee80a3a59d2c9fc601a"
  dependencies = [
@@ -2657,7 +2657,7 @@ index f7ba771e1e..53ee87c228 100644
   "syn 2.0.66",
  ]
  
-@@ -9668,8 +10135,8 @@ version = "1.4.2"
+@@ -9669,8 +10136,8 @@ version = "1.4.2"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
  dependencies = [
@@ -2669,7 +2669,7 @@ index f7ba771e1e..53ee87c228 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index 2cb718597e..c8321bddc4 100644
+index 7ae1934b6a..c091809cfd 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -19,6 +19,7 @@ members = [
@@ -14509,7 +14509,7 @@ index 4dcd7bbfa3..9e39bf390e 100644
          .expect("assume success");
          exit.store(true, Ordering::Relaxed);
 diff --git a/core/src/validator.rs b/core/src/validator.rs
-index 889a3a6c46..0c4788a668 100644
+index 743612a35f..c1bde97fd0 100644
 --- a/core/src/validator.rs
 +++ b/core/src/validator.rs
 @@ -15,6 +15,7 @@ use {
@@ -14681,7 +14681,7 @@ index 889a3a6c46..0c4788a668 100644
          });
  
          Ok(Self {
-@@ -1924,6 +1972,7 @@ fn load_blockstore(
+@@ -1923,6 +1971,7 @@ fn load_blockstore(
                  .map(|service| service.sender()),
              accounts_update_notifier,
              exit,
@@ -14689,7 +14689,7 @@ index 889a3a6c46..0c4788a668 100644
          )
          .map_err(|err| err.to_string())?;
  
-@@ -2615,6 +2664,7 @@ mod tests {
+@@ -2614,6 +2663,7 @@ mod tests {
              DEFAULT_TPU_ENABLE_UDP,
              32, // max connections per IpAddr per minute for test
              Arc::new(RwLock::new(None)),
@@ -14697,7 +14697,7 @@ index 889a3a6c46..0c4788a668 100644
          )
          .expect("assume successful validator start");
          assert_eq!(
-@@ -2692,7 +2742,7 @@ mod tests {
+@@ -2691,7 +2741,7 @@ mod tests {
                      Arc::new(RwLock::new(vec![Arc::new(vote_account_keypair)])),
                      vec![leader_node.info.clone()],
                      &config,
@@ -14706,7 +14706,7 @@ index 889a3a6c46..0c4788a668 100644
                      None, // rpc_to_plugin_manager_receiver
                      Arc::new(RwLock::new(ValidatorStartProgress::default())),
                      SocketAddrSpace::Unspecified,
-@@ -2701,6 +2751,7 @@ mod tests {
+@@ -2700,6 +2750,7 @@ mod tests {
                      DEFAULT_TPU_ENABLE_UDP,
                      32, // max connections per IpAddr per minute for test
                      Arc::new(RwLock::new(None)),
@@ -14714,7 +14714,7 @@ index 889a3a6c46..0c4788a668 100644
                  )
                  .expect("assume successful validator start")
              })
-@@ -2817,7 +2868,7 @@ mod tests {
+@@ -2816,7 +2867,7 @@ mod tests {
  
          assert!(is_snapshot_config_valid(
              &new_snapshot_config(300, 200),
@@ -14723,7 +14723,7 @@ index 889a3a6c46..0c4788a668 100644
          ));
  
          let default_accounts_hash_interval =
-@@ -2825,62 +2876,62 @@ mod tests {
+@@ -2824,62 +2875,62 @@ mod tests {
          assert!(is_snapshot_config_valid(
              &new_snapshot_config(
                  snapshot_bank_utils::DEFAULT_FULL_SNAPSHOT_ARCHIVE_INTERVAL_SLOTS,
@@ -14800,7 +14800,7 @@ index 889a3a6c46..0c4788a668 100644
          ));
          assert!(is_snapshot_config_valid(
              &SnapshotConfig {
-@@ -2888,7 +2939,7 @@ mod tests {
+@@ -2887,7 +2938,7 @@ mod tests {
                  incremental_snapshot_archive_interval_slots: 37,
                  ..SnapshotConfig::new_load_only()
              },
@@ -14809,7 +14809,7 @@ index 889a3a6c46..0c4788a668 100644
          ));
          assert!(is_snapshot_config_valid(
              &SnapshotConfig {
-@@ -2896,7 +2947,7 @@ mod tests {
+@@ -2895,7 +2946,7 @@ mod tests {
                  incremental_snapshot_archive_interval_slots: DISABLED_SNAPSHOT_ARCHIVE_INTERVAL,
                  ..SnapshotConfig::new_load_only()
              },
@@ -15196,7 +15196,7 @@ index da4fda5914..ebf91dc644 100644
          *root_hash
      } else {
 diff --git a/entry/src/poh.rs b/entry/src/poh.rs
-index b54c8a745a..de14e835e1 100644
+index 9bf6be66a0..84325a9e50 100644
 --- a/entry/src/poh.rs
 +++ b/entry/src/poh.rs
 @@ -72,19 +72,30 @@ impl Poh {
@@ -15501,11 +15501,11 @@ index 0000000000..30ece1620a
 +}
 diff --git a/jito-protos/protos b/jito-protos/protos
 new file mode 160000
-index 0000000000..05d210980f
+index 0000000000..b74a23ff23
 --- /dev/null
 +++ b/jito-protos/protos
 @@ -0,0 +1 @@
-+Subproject commit 05d210980f34a7c974d7ed1a4dbcb2ce1fca00b3
++Subproject commit b74a23ff236c0c223b1bc56daf7c5065bb585428
 diff --git a/jito-protos/src/lib.rs b/jito-protos/src/lib.rs
 new file mode 100644
 index 0000000000..cf630c53d2
@@ -15550,7 +15550,7 @@ index a79645e428..e195ac1cb6 100644
  
              let bank = bank_forks.read().unwrap().working_bank();
 diff --git a/ledger-tool/src/ledger_utils.rs b/ledger-tool/src/ledger_utils.rs
-index 98a647e21f..32d0f6ce05 100644
+index 30f1d77a68..5f55dce4eb 100644
 --- a/ledger-tool/src/ledger_utils.rs
 +++ b/ledger-tool/src/ledger_utils.rs
 @@ -112,6 +112,7 @@ pub fn load_and_process_ledger_or_exit(
@@ -15618,10 +15618,10 @@ index 98a647e21f..32d0f6ce05 100644
          .map_err(LoadAndProcessLedgerError::LoadBankForks)?;
      let block_verification_method = value_t!(
 diff --git a/ledger-tool/src/main.rs b/ledger-tool/src/main.rs
-index 8339c0a14d..ca5f16f0cb 100644
+index 51e1dfe1b0..1040bcf356 100644
 --- a/ledger-tool/src/main.rs
 +++ b/ledger-tool/src/main.rs
-@@ -1436,8 +1436,8 @@ fn main() {
+@@ -1438,8 +1438,8 @@ fn main() {
                              Arc::new(blockstore),
                              process_options,
                              None,
@@ -15631,7 +15631,7 @@ index 8339c0a14d..ca5f16f0cb 100644
                      println!(
                          "{}",
                          compute_shred_version(
-@@ -1630,6 +1630,7 @@ fn main() {
+@@ -1632,6 +1632,7 @@ fn main() {
                              Arc::new(blockstore),
                              process_options,
                              transaction_status_sender,
@@ -15639,7 +15639,7 @@ index 8339c0a14d..ca5f16f0cb 100644
                          );
  
                      let working_bank = bank_forks.read().unwrap().working_bank();
-@@ -1697,6 +1698,7 @@ fn main() {
+@@ -1699,6 +1700,7 @@ fn main() {
                              Arc::new(blockstore),
                              process_options,
                              None,
@@ -15647,7 +15647,7 @@ index 8339c0a14d..ca5f16f0cb 100644
                          );
  
                      let dot = graph_forks(&bank_forks.read().unwrap(), &graph_config);
-@@ -1870,6 +1872,7 @@ fn main() {
+@@ -1872,6 +1874,7 @@ fn main() {
                          blockstore.clone(),
                          process_options,
                          None,
@@ -15655,7 +15655,7 @@ index 8339c0a14d..ca5f16f0cb 100644
                      );
                      // Snapshot creation will implicitly perform AccountsDb
                      // flush and clean operations. These operations cannot be
-@@ -2265,6 +2268,7 @@ fn main() {
+@@ -2267,6 +2270,7 @@ fn main() {
                              Arc::new(blockstore),
                              process_options,
                              None,
@@ -15663,7 +15663,7 @@ index 8339c0a14d..ca5f16f0cb 100644
                          );
                      let bank = bank_forks.read().unwrap().working_bank();
  
-@@ -2317,7 +2321,9 @@ fn main() {
+@@ -2319,7 +2323,9 @@ fn main() {
                              Arc::new(blockstore),
                              process_options,
                              None,
@@ -21423,7 +21423,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index 22e60ee7af..6078766a92 100644
+index 812a898c31..fde944a02e 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -123,6 +123,7 @@ dependencies = [
@@ -21927,7 +21927,7 @@ index 22e60ee7af..6078766a92 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.5"
++version = "2.0.3"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -22248,7 +22248,7 @@ index 22e60ee7af..6078766a92 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.5"
++version = "2.0.3"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -22403,7 +22403,7 @@ index 22e60ee7af..6078766a92 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.5"
++version = "2.0.3"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -22475,7 +22475,7 @@ index 22e60ee7af..6078766a92 100644
   "lazy_static",
   "log",
   "serde",
-@@ -6705,7 +7019,7 @@ version = "0.2.0"
+@@ -6706,7 +7020,7 @@ version = "0.2.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "d9e8418ea6269dcfb01c712f0444d2c75542c04448b480e87de59d2865edc750"
  dependencies = [
@@ -22484,7 +22484,7 @@ index 22e60ee7af..6078766a92 100644
   "spl-discriminator-syn",
   "syn 2.0.58",
  ]
-@@ -6716,8 +7030,8 @@ version = "0.2.0"
+@@ -6717,8 +7031,8 @@ version = "0.2.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "8c1f05593b7ca9eac7caca309720f2eafb96355e037e6d373b909a80fe7b69b9"
  dependencies = [
@@ -22495,7 +22495,7 @@ index 22e60ee7af..6078766a92 100644
   "sha2 0.10.8",
   "syn 2.0.58",
   "thiserror",
-@@ -6765,8 +7079,8 @@ version = "0.4.1"
+@@ -6766,8 +7080,8 @@ version = "0.4.1"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "e6d375dd76c517836353e093c2dbb490938ff72821ab568b545fd30ab3256b3e"
  dependencies = [
@@ -22506,7 +22506,7 @@ index 22e60ee7af..6078766a92 100644
   "sha2 0.10.8",
   "syn 2.0.58",
  ]
-@@ -6924,9 +7238,9 @@ version = "0.24.3"
+@@ -6925,9 +7239,9 @@ version = "0.24.3"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "1e385be0d24f186b4ce2f9982191e7101bb737312ad61c1f2f984f34bcf85d59"
  dependencies = [
@@ -22519,7 +22519,7 @@ index 22e60ee7af..6078766a92 100644
   "rustversion",
   "syn 1.0.109",
  ]
-@@ -6943,14 +7257,25 @@ version = "0.1.0"
+@@ -6944,14 +7258,25 @@ version = "0.1.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "a7973cce6668464ea31f176d85b13c7ab3bba2cb3b77a2ed26abd7801688010a"
  
@@ -22547,7 +22547,7 @@ index 22e60ee7af..6078766a92 100644
   "unicode-ident",
  ]
  
-@@ -6960,8 +7285,8 @@ version = "2.0.58"
+@@ -6961,8 +7286,8 @@ version = "2.0.58"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "44cfb93f38070beee36b3fef7d4f5a16f27751d94b187b666a5cc5e9b0d30687"
  dependencies = [
@@ -22558,7 +22558,7 @@ index 22e60ee7af..6078766a92 100644
   "unicode-ident",
  ]
  
-@@ -6972,8 +7297,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+@@ -6973,8 +7298,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "1329189c02ff984e9736652b1631330da25eaa6bc639089ed4915d25446cbe7b"
  dependencies = [
   "proc-macro-error",
@@ -22569,7 +22569,7 @@ index 22e60ee7af..6078766a92 100644
   "syn 2.0.58",
  ]
  
-@@ -6989,10 +7314,10 @@ version = "0.12.6"
+@@ -6990,10 +7315,10 @@ version = "0.12.6"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "f36bdaa60a83aca3921b5259d5400cbf5e90fc51931376a9bd4a0eb79aa7210f"
  dependencies = [
@@ -22583,7 +22583,7 @@ index 22e60ee7af..6078766a92 100644
  ]
  
  [[package]]
-@@ -7080,8 +7405,8 @@ version = "0.12.0"
+@@ -7081,8 +7406,8 @@ version = "0.12.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "0ee42b4e559f17bce0385ebf511a7beb67d5cc33c12c96b7f4e9789919d9c10f"
  dependencies = [
@@ -22594,7 +22594,7 @@ index 22e60ee7af..6078766a92 100644
   "syn 1.0.109",
  ]
  
-@@ -7151,8 +7476,8 @@ version = "1.0.61"
+@@ -7152,8 +7477,8 @@ version = "1.0.61"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "46c3384250002a6d5af4d114f2845d37b57521033f30d5c3f46c4d70e1197533"
  dependencies = [
@@ -22605,7 +22605,7 @@ index 22e60ee7af..6078766a92 100644
   "syn 2.0.58",
  ]
  
-@@ -7288,8 +7613,8 @@ version = "2.1.0"
+@@ -7289,8 +7614,8 @@ version = "2.1.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "630bdcf245f78637c13ec01ffae6187cca34625e8c63150d424b59e55af2675e"
  dependencies = [
@@ -22616,7 +22616,7 @@ index 22e60ee7af..6078766a92 100644
   "syn 2.0.58",
  ]
  
-@@ -7432,6 +7757,7 @@ dependencies = [
+@@ -7433,6 +7758,7 @@ dependencies = [
   "percent-encoding 2.3.1",
   "pin-project",
   "prost",
@@ -22624,7 +22624,7 @@ index 22e60ee7af..6078766a92 100644
   "rustls-pemfile",
   "tokio",
   "tokio-rustls",
-@@ -7440,6 +7766,7 @@ dependencies = [
+@@ -7441,6 +7767,7 @@ dependencies = [
   "tower-layer",
   "tower-service",
   "tracing",
@@ -22632,7 +22632,7 @@ index 22e60ee7af..6078766a92 100644
  ]
  
  [[package]]
-@@ -7449,9 +7776,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
+@@ -7450,9 +7777,9 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "a6fdaae4c2c638bb70fe42803a26fbd6fc6ac8c72f5c59f67ecc2a2dcabf4b07"
  dependencies = [
   "prettyplease",
@@ -22644,7 +22644,7 @@ index 22e60ee7af..6078766a92 100644
   "syn 1.0.109",
  ]
  
-@@ -7506,8 +7833,8 @@ version = "0.1.27"
+@@ -7507,8 +7834,8 @@ version = "0.1.27"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "34704c8d6ebcbc939824180af020566b01a7c01f80641264eba0999f6c2b6be7"
  dependencies = [
@@ -22655,7 +22655,7 @@ index 22e60ee7af..6078766a92 100644
   "syn 2.0.58",
  ]
  
-@@ -7620,12 +7947,24 @@ dependencies = [
+@@ -7621,12 +7948,24 @@ dependencies = [
   "tinyvec",
  ]
  
@@ -22680,7 +22680,7 @@ index 22e60ee7af..6078766a92 100644
  [[package]]
  name = "unicode-xid"
  version = "0.2.4"
-@@ -7795,8 +8134,8 @@ dependencies = [
+@@ -7796,8 +8135,8 @@ dependencies = [
   "bumpalo",
   "log",
   "once_cell",
@@ -22691,7 +22691,7 @@ index 22e60ee7af..6078766a92 100644
   "syn 2.0.58",
   "wasm-bindgen-shared",
  ]
-@@ -7819,7 +8158,7 @@ version = "0.2.92"
+@@ -7820,7 +8159,7 @@ version = "0.2.92"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "a1f8823de937b71b9460c0c34e25f3da88250760bec0ebac694b49997550d726"
  dependencies = [
@@ -22700,7 +22700,7 @@ index 22e60ee7af..6078766a92 100644
   "wasm-bindgen-macro-support",
  ]
  
-@@ -7829,8 +8168,8 @@ version = "0.2.92"
+@@ -7830,8 +8169,8 @@ version = "0.2.92"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "e94f17b526d0a461a191c78ea52bbce64071ed5c04c9ffe424dcb38f74171bb7"
  dependencies = [
@@ -22711,7 +22711,7 @@ index 22e60ee7af..6078766a92 100644
   "syn 2.0.58",
   "wasm-bindgen-backend",
   "wasm-bindgen-shared",
-@@ -7852,13 +8191,22 @@ dependencies = [
+@@ -7853,13 +8192,22 @@ dependencies = [
   "wasm-bindgen",
  ]
  
@@ -22735,7 +22735,7 @@ index 22e60ee7af..6078766a92 100644
  ]
  
  [[package]]
-@@ -8101,6 +8449,12 @@ dependencies = [
+@@ -8102,6 +8450,12 @@ dependencies = [
   "rustix",
  ]
  
@@ -22748,7 +22748,7 @@ index 22e60ee7af..6078766a92 100644
  [[package]]
  name = "zerocopy"
  version = "0.7.31"
-@@ -8116,8 +8470,8 @@ version = "0.7.31"
+@@ -8117,8 +8471,8 @@ version = "0.7.31"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "b3c129550b3e6de3fd0ba67ba5c81818f9805e58b8d7fee80a3a59d2c9fc601a"
  dependencies = [
@@ -22759,7 +22759,7 @@ index 22e60ee7af..6078766a92 100644
   "syn 2.0.58",
  ]
  
-@@ -8136,8 +8490,8 @@ version = "1.4.2"
+@@ -8137,8 +8491,8 @@ version = "1.4.2"
  source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
  dependencies = [
@@ -25553,7 +25553,7 @@ index 8a205a798f..b92ba7d0ad 100644
      pub fn set_account(&mut self, pubkey: &Pubkey, account: Option<AccountSharedData>) {
          match account {
 diff --git a/svm/src/transaction_processor.rs b/svm/src/transaction_processor.rs
-index 8c3190fcd2..8ae9a5ab61 100644
+index 0013dbc485..3ab16f258f 100644
 --- a/svm/src/transaction_processor.rs
 +++ b/svm/src/transaction_processor.rs
 @@ -244,7 +244,8 @@ impl<FG: ForkGraph> TransactionBatchProcessor<FG> {
@@ -25607,7 +25607,7 @@ index 8c3190fcd2..8ae9a5ab61 100644
              error_counters.account_not_found += 1;
              return Err(TransactionError::AccountNotFound);
          };
-@@ -2003,6 +2013,7 @@ mod tests {
+@@ -2010,6 +2020,7 @@ mod tests {
              &FeeStructure::default(),
              &rent_collector,
              &mut error_counters,
@@ -25615,7 +25615,7 @@ index 8c3190fcd2..8ae9a5ab61 100644
          );
  
          let post_validation_fee_payer_account = {
-@@ -2075,6 +2086,7 @@ mod tests {
+@@ -2082,6 +2093,7 @@ mod tests {
              &FeeStructure::default(),
              &rent_collector,
              &mut error_counters,
@@ -25623,7 +25623,7 @@ index 8c3190fcd2..8ae9a5ab61 100644
          );
  
          let post_validation_fee_payer_account = {
-@@ -2122,6 +2134,7 @@ mod tests {
+@@ -2129,6 +2141,7 @@ mod tests {
              &FeeStructure::default(),
              &RentCollector::default(),
              &mut error_counters,
@@ -25631,7 +25631,7 @@ index 8c3190fcd2..8ae9a5ab61 100644
          );
  
          assert_eq!(error_counters.account_not_found, 1);
-@@ -2154,6 +2167,7 @@ mod tests {
+@@ -2161,6 +2174,7 @@ mod tests {
              &FeeStructure::default(),
              &RentCollector::default(),
              &mut error_counters,
@@ -25639,7 +25639,7 @@ index 8c3190fcd2..8ae9a5ab61 100644
          );
  
          assert_eq!(error_counters.insufficient_funds, 1);
-@@ -2190,6 +2204,7 @@ mod tests {
+@@ -2197,6 +2211,7 @@ mod tests {
              &FeeStructure::default(),
              &rent_collector,
              &mut error_counters,
@@ -25647,7 +25647,7 @@ index 8c3190fcd2..8ae9a5ab61 100644
          );
  
          assert_eq!(
-@@ -2224,6 +2239,7 @@ mod tests {
+@@ -2231,6 +2246,7 @@ mod tests {
              &FeeStructure::default(),
              &RentCollector::default(),
              &mut error_counters,
@@ -25655,7 +25655,7 @@ index 8c3190fcd2..8ae9a5ab61 100644
          );
  
          assert_eq!(error_counters.invalid_account_for_fee, 1);
-@@ -2255,6 +2271,7 @@ mod tests {
+@@ -2262,6 +2278,7 @@ mod tests {
              &FeeStructure::default(),
              &RentCollector::default(),
              &mut error_counters,
@@ -25663,7 +25663,7 @@ index 8c3190fcd2..8ae9a5ab61 100644
          );
  
          assert_eq!(error_counters.invalid_compute_budget, 1);
-@@ -2316,6 +2333,7 @@ mod tests {
+@@ -2323,6 +2340,7 @@ mod tests {
                  &FeeStructure::default(),
                  &rent_collector,
                  &mut error_counters,
@@ -25671,7 +25671,7 @@ index 8c3190fcd2..8ae9a5ab61 100644
              );
  
              let post_validation_fee_payer_account = {
-@@ -2373,10 +2391,13 @@ mod tests {
+@@ -2380,10 +2398,13 @@ mod tests {
                  &FeeStructure::default(),
                  &rent_collector,
                  &mut error_counters,
@@ -29163,7 +29163,7 @@ index 0000000000..9616154c09
 +    }
 +}
 diff --git a/transaction-status/src/lib.rs b/transaction-status/src/lib.rs
-index 489a213c52..8f47f88121 100644
+index 6a5eb5fb8d..67a8a4ba76 100644
 --- a/transaction-status/src/lib.rs
 +++ b/transaction-status/src/lib.rs
 @@ -27,7 +27,7 @@ use {
@@ -29538,7 +29538,7 @@ index e9ed6a1a6e..c0fa09ce7d 100644
      }
      fn record(&mut self, receiver: &RecordReceiver, blockstore: &Blockstore) -> Result<()> {
 diff --git a/turbine/src/broadcast_stage/standard_broadcast_run.rs b/turbine/src/broadcast_stage/standard_broadcast_run.rs
-index f108fc0822..39a466b8eb 100644
+index 0ddbe1020f..de63c04961 100644
 --- a/turbine/src/broadcast_stage/standard_broadcast_run.rs
 +++ b/turbine/src/broadcast_stage/standard_broadcast_run.rs
 @@ -17,7 +17,7 @@ use {
@@ -29909,7 +29909,7 @@ index 63084741f0..a0e4bf45e1 100644
                  .map(|incremental_snapshot_info| {
                      (
 diff --git a/validator/src/cli.rs b/validator/src/cli.rs
-index d6517d79bb..edea2eb604 100644
+index d2b70583d2..8d8c4767a6 100644
 --- a/validator/src/cli.rs
 +++ b/validator/src/cli.rs
 @@ -68,6 +68,10 @@ const MAX_SNAPSHOT_DOWNLOAD_ABORT: u32 = 5;
@@ -29923,7 +29923,7 @@ index d6517d79bb..edea2eb604 100644
  pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
      return App::new(crate_name!())
          .about(crate_description!())
-@@ -79,6 +83,87 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
+@@ -81,6 +85,87 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
                  .long(SKIP_SEED_PHRASE_VALIDATION_ARG.long)
                  .help(SKIP_SEED_PHRASE_VALIDATION_ARG.help),
          )
@@ -30011,7 +30011,7 @@ index d6517d79bb..edea2eb604 100644
          .arg(
              Arg::with_name("identity")
                  .short("i")
-@@ -1180,6 +1265,14 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
+@@ -1182,6 +1267,14 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
                  .multiple(true)
                  .help("Specify the configuration file for the Geyser plugin."),
          )
@@ -30026,7 +30026,7 @@ index d6517d79bb..edea2eb604 100644
          .arg(
              Arg::with_name("snapshot_archive_format")
                  .long("snapshot-archive-format")
-@@ -1571,6 +1664,68 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
+@@ -1573,6 +1666,68 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
          .args(&thread_args(&default_args.thread_args))
          .args(&get_deprecated_arguments())
          .after_help("The default subcommand is run")
@@ -30095,7 +30095,7 @@ index d6517d79bb..edea2eb604 100644
          .subcommand(
              SubCommand::with_name("exit")
                  .about("Send an exit request to the validator")
-@@ -1747,6 +1902,48 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
+@@ -1749,6 +1904,48 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
          )
          .subcommand(SubCommand::with_name("monitor").about("Monitor the validator"))
          .subcommand(SubCommand::with_name("run").about("Run the validator"))
@@ -30144,7 +30144,7 @@ index d6517d79bb..edea2eb604 100644
          .subcommand(
              SubCommand::with_name("plugin")
                  .about("Manage and view geyser plugins")
-@@ -2744,6 +2941,14 @@ pub fn test_app<'a>(version: &'a str, default_args: &'a DefaultTestArgs) -> App<
+@@ -2746,6 +2943,14 @@ pub fn test_app<'a>(version: &'a str, default_args: &'a DefaultTestArgs) -> App<
                  .multiple(true)
                  .help("Specify the configuration file for the Geyser plugin."),
          )

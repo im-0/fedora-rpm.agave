@@ -1,74 +1,41 @@
-From 9123a266fe07432334495c1bce511d5aff954494 Mon Sep 17 00:00:00 2001
+From 5217725761e6b0106a8f956832812bdc93031650 Mon Sep 17 00:00:00 2001
 From: buffalu <85544055+buffalu@users.noreply.github.com>
-Date: Sun, 21 Jul 2024 13:22:01 -0700
-Subject: [PATCH] Backport #611  (#631)
+Date: Mon, 22 Jul 2024 10:44:49 -0700
+Subject: [PATCH] Publish releases to S3 and GCS (#633) (#634)
 
 ---
- .../unprocessed_transaction_storage.rs        | 26 ++++++++++++++-----
- core/src/bundle_stage.rs                      |  2 +-
- 2 files changed, 21 insertions(+), 7 deletions(-)
+ ci/publish-installer.sh | 5 +++++
+ ci/publish-tarball.sh   | 4 ++++
+ 2 files changed, 9 insertions(+)
 
-diff --git a/core/src/banking_stage/unprocessed_transaction_storage.rs b/core/src/banking_stage/unprocessed_transaction_storage.rs
-index ae487952c8..85aef1d331 100644
---- a/core/src/banking_stage/unprocessed_transaction_storage.rs
-+++ b/core/src/banking_stage/unprocessed_transaction_storage.rs
-@@ -21,7 +21,7 @@ use {
-     },
-     itertools::Itertools,
-     min_max_heap::MinMaxHeap,
--    solana_bundle::BundleExecutionError,
-+    solana_bundle::{bundle_execution::LoadAndExecuteBundleError, BundleExecutionError},
-     solana_measure::{measure, measure_us},
-     solana_runtime::bank::Bank,
-     solana_sdk::{
-@@ -1314,6 +1314,25 @@ impl BundleStorage {
-                         rebuffered_bundles.push(deserialized_bundle);
-                         is_slot_over = true;
-                     }
-+                    Err(BundleExecutionError::ExceedsCostModel) => {
-+                        // cost model buffered bundles contain most recent bundles at the front of the queue
-+                        debug!(
-+                            "bundle={} exceeds cost model, rebuffering",
-+                            sanitized_bundle.bundle_id
-+                        );
-+                        self.push_back_cost_model_buffered_bundles(vec![deserialized_bundle]);
-+                    }
-+                    Err(BundleExecutionError::TransactionFailure(
-+                        LoadAndExecuteBundleError::ProcessingTimeExceeded(_),
-+                    )) => {
-+                        // these are treated the same as exceeds cost model and are rebuferred to be completed
-+                        // at the beginning of the next slot
-+                        debug!(
-+                            "bundle={} processing time exceeded, rebuffering",
-+                            sanitized_bundle.bundle_id
-+                        );
-+                        self.push_back_cost_model_buffered_bundles(vec![deserialized_bundle]);
-+                    }
-                     Err(BundleExecutionError::TransactionFailure(e)) => {
-                         debug!(
-                             "bundle={} execution error: {:?}",
-@@ -1321,11 +1340,6 @@ impl BundleStorage {
-                         );
-                         // do nothing
-                     }
--                    Err(BundleExecutionError::ExceedsCostModel) => {
--                        // cost model buffered bundles contain most recent bundles at the front of the queue
--                        debug!("bundle={} exceeds cost model", sanitized_bundle.bundle_id);
--                        self.push_back_cost_model_buffered_bundles(vec![deserialized_bundle]);
--                    }
-                     Err(BundleExecutionError::TipError(e)) => {
-                         debug!("bundle={} tip error: {}", sanitized_bundle.bundle_id, e);
-                         // Tip errors are _typically_ due to misconfiguration (except for poh record error, bank processing error, exceeds cost model)
-diff --git a/core/src/bundle_stage.rs b/core/src/bundle_stage.rs
-index e935529df5..a5bb2ec515 100644
---- a/core/src/bundle_stage.rs
-+++ b/core/src/bundle_stage.rs
-@@ -46,7 +46,7 @@ mod bundle_reserved_space_manager;
- pub(crate) mod bundle_stage_leader_metrics;
- mod committer;
+diff --git a/ci/publish-installer.sh b/ci/publish-installer.sh
+index b702e70285..2caf990037 100755
+--- a/ci/publish-installer.sh
++++ b/ci/publish-installer.sh
+@@ -35,6 +35,11 @@ cat install/agave-install-init.sh >>release.jito.wtf-install
  
--const MAX_BUNDLE_RETRY_DURATION: Duration = Duration::from_millis(10);
-+const MAX_BUNDLE_RETRY_DURATION: Duration = Duration::from_millis(40);
- const SLOT_BOUNDARY_CHECK_PERIOD: Duration = Duration::from_millis(10);
+ echo --- GCS: "install"
+ upload-gcs-artifact "/solana/release.jito.wtf-install" "gs://jito-release/$CHANNEL_OR_TAG/install"
++
++# Jito added - releases need to support S3
++echo --- AWS S3 Store: "install"
++upload-s3-artifact "/solana/release.jito.wtf-install" "s3://release.jito.wtf/$CHANNEL_OR_TAG/install"
++
+ echo Published to:
+ ci/format-url.sh https://release.jito.wtf/"$CHANNEL_OR_TAG"/install
  
- // Stats emitted periodically
+diff --git a/ci/publish-tarball.sh b/ci/publish-tarball.sh
+index 9401f74915..abad4f4209 100755
+--- a/ci/publish-tarball.sh
++++ b/ci/publish-tarball.sh
+@@ -121,6 +121,10 @@ for file in "${TARBALL_BASENAME}"-$TARGET.tar.bz2 "${TARBALL_BASENAME}"-$TARGET.
+     echo --- GCS Store: "$file"
+     upload-gcs-artifact "/solana/$file" gs://jito-release/"$CHANNEL_OR_TAG"/"$file"
+ 
++    # Jito added - releases need to support S3
++    echo --- AWS S3 Store: "$file"
++    upload-s3-artifact "/solana/$file" s3://release.jito.wtf/"$CHANNEL_OR_TAG"/"$file"
++
+     echo Published to:
+     $DRYRUN ci/format-url.sh https://release.jito.wtf/"$CHANNEL_OR_TAG"/"$file"
+ 

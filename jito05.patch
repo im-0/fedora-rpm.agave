@@ -1,41 +1,72 @@
-From 009312fcb1650dff8774c014d86a72fa5c5a3255 Mon Sep 17 00:00:00 2001
+From bec65a4f3c3049bcbcffe47066991fe122102ac4 Mon Sep 17 00:00:00 2001
 From: buffalu <85544055+buffalu@users.noreply.github.com>
-Date: Mon, 22 Jul 2024 10:44:49 -0700
-Subject: [PATCH] Publish releases to S3 and GCS (#633) (#634)
+Date: Fri, 9 Aug 2024 10:25:38 -0500
+Subject: [PATCH] Add packet flag for from staked sender (#655)
 
+Co-authored-by: Jed <4679729+jedleggett@users.noreply.github.com>
 ---
- ci/publish-installer.sh | 5 +++++
- ci/publish-tarball.sh   | 4 ++++
- 2 files changed, 9 insertions(+)
+ core/benches/proto_to_packet.rs | 1 +
+ core/src/lib.rs                 | 6 ++++++
+ programs/sbf/Cargo.lock         | 6 +++---
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/ci/publish-installer.sh b/ci/publish-installer.sh
-index b702e70285..2caf990037 100755
---- a/ci/publish-installer.sh
-+++ b/ci/publish-installer.sh
-@@ -35,6 +35,11 @@ cat install/agave-install-init.sh >>release.jito.wtf-install
+diff --git a/core/benches/proto_to_packet.rs b/core/benches/proto_to_packet.rs
+index 87f85f9c7f..1727d8af9c 100644
+--- a/core/benches/proto_to_packet.rs
++++ b/core/benches/proto_to_packet.rs
+@@ -25,6 +25,7 @@ fn get_proto_packet(i: u8) -> PbPacket {
+                 repair: false,
+                 simple_vote_tx: false,
+                 tracer_packet: false,
++                from_staked_node: false,
+             }),
+             sender_stake: 0,
+         }),
+diff --git a/core/src/lib.rs b/core/src/lib.rs
+index 5c4aa86523..9d6908b317 100644
+--- a/core/src/lib.rs
++++ b/core/src/lib.rs
+@@ -106,6 +106,12 @@ pub fn proto_packet_to_packet(p: jito_protos::proto::packet::Packet) -> Packet {
+             if flags.repair {
+                 packet.meta_mut().flags.insert(PacketFlags::REPAIR);
+             }
++            if flags.from_staked_node {
++                packet
++                    .meta_mut()
++                    .flags
++                    .insert(PacketFlags::FROM_STAKED_NODE)
++            }
+         }
+     }
+     packet
+diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
+index fde944a02e..b1b2483d02 100644
+--- a/programs/sbf/Cargo.lock
++++ b/programs/sbf/Cargo.lock
+@@ -2552,7 +2552,7 @@ dependencies = [
  
- echo --- GCS: "install"
- upload-gcs-artifact "/solana/release.jito.wtf-install" "gs://jito-release/$CHANNEL_OR_TAG/install"
-+
-+# Jito added - releases need to support S3
-+echo --- AWS S3 Store: "install"
-+upload-s3-artifact "/solana/release.jito.wtf-install" "s3://release.jito.wtf/$CHANNEL_OR_TAG/install"
-+
- echo Published to:
- ci/format-url.sh https://release.jito.wtf/"$CHANNEL_OR_TAG"/install
+ [[package]]
+ name = "jito-protos"
+-version = "2.0.3"
++version = "2.0.5"
+ dependencies = [
+  "bytes",
+  "prost",
+@@ -4955,7 +4955,7 @@ dependencies = [
  
-diff --git a/ci/publish-tarball.sh b/ci/publish-tarball.sh
-index 9401f74915..abad4f4209 100755
---- a/ci/publish-tarball.sh
-+++ b/ci/publish-tarball.sh
-@@ -121,6 +121,10 @@ for file in "${TARBALL_BASENAME}"-$TARGET.tar.bz2 "${TARBALL_BASENAME}"-$TARGET.
-     echo --- GCS Store: "$file"
-     upload-gcs-artifact "/solana/$file" gs://jito-release/"$CHANNEL_OR_TAG"/"$file"
+ [[package]]
+ name = "solana-bundle"
+-version = "2.0.3"
++version = "2.0.5"
+ dependencies = [
+  "anchor-lang",
+  "itertools 0.12.1",
+@@ -5936,7 +5936,7 @@ dependencies = [
  
-+    # Jito added - releases need to support S3
-+    echo --- AWS S3 Store: "$file"
-+    upload-s3-artifact "/solana/$file" s3://release.jito.wtf/"$CHANNEL_OR_TAG"/"$file"
-+
-     echo Published to:
-     $DRYRUN ci/format-url.sh https://release.jito.wtf/"$CHANNEL_OR_TAG"/"$file"
- 
+ [[package]]
+ name = "solana-runtime-plugin"
+-version = "2.0.3"
++version = "2.0.5"
+ dependencies = [
+  "crossbeam-channel",
+  "json5",
