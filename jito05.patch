@@ -1,4 +1,4 @@
-From bec65a4f3c3049bcbcffe47066991fe122102ac4 Mon Sep 17 00:00:00 2001
+From 8ce11f8f9f0ffe4bbd8ea539162579fc81a3ef0a Mon Sep 17 00:00:00 2001
 From: buffalu <85544055+buffalu@users.noreply.github.com>
 Date: Fri, 9 Aug 2024 10:25:38 -0500
 Subject: [PATCH] Add packet flag for from staked sender (#655)
@@ -7,8 +7,7 @@ Co-authored-by: Jed <4679729+jedleggett@users.noreply.github.com>
 ---
  core/benches/proto_to_packet.rs | 1 +
  core/src/lib.rs                 | 6 ++++++
- programs/sbf/Cargo.lock         | 6 +++---
- 3 files changed, 10 insertions(+), 3 deletions(-)
+ 2 files changed, 7 insertions(+)
 
 diff --git a/core/benches/proto_to_packet.rs b/core/benches/proto_to_packet.rs
 index 87f85f9c7f..1727d8af9c 100644
@@ -39,34 +38,3 @@ index 5c4aa86523..9d6908b317 100644
          }
      }
      packet
-diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index fde944a02e..b1b2483d02 100644
---- a/programs/sbf/Cargo.lock
-+++ b/programs/sbf/Cargo.lock
-@@ -2552,7 +2552,7 @@ dependencies = [
- 
- [[package]]
- name = "jito-protos"
--version = "2.0.3"
-+version = "2.0.5"
- dependencies = [
-  "bytes",
-  "prost",
-@@ -4955,7 +4955,7 @@ dependencies = [
- 
- [[package]]
- name = "solana-bundle"
--version = "2.0.3"
-+version = "2.0.5"
- dependencies = [
-  "anchor-lang",
-  "itertools 0.12.1",
-@@ -5936,7 +5936,7 @@ dependencies = [
- 
- [[package]]
- name = "solana-runtime-plugin"
--version = "2.0.3"
-+version = "2.0.5"
- dependencies = [
-  "crossbeam-channel",
-  "json5",

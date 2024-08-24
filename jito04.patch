@@ -1,4 +1,4 @@
-From 5217725761e6b0106a8f956832812bdc93031650 Mon Sep 17 00:00:00 2001
+From 5cc4037fb497f00fe7c2ddb482d4a81c0896b9ad Mon Sep 17 00:00:00 2001
 From: buffalu <85544055+buffalu@users.noreply.github.com>
 Date: Mon, 22 Jul 2024 10:44:49 -0700
 Subject: [PATCH] Publish releases to S3 and GCS (#633) (#634)

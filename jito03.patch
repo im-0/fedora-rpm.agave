@@ -1,4 +1,4 @@
-From afa7c6b72a7adccb101a514d2fcd0c54da91afd5 Mon Sep 17 00:00:00 2001
+From 421333f38430d76bc9b4bc735fc9f847156dbb51 Mon Sep 17 00:00:00 2001
 From: buffalu <85544055+buffalu@users.noreply.github.com>
 Date: Sun, 21 Jul 2024 13:22:01 -0700
 Subject: [PATCH] Backport #611  (#631)
@@ -9,7 +9,7 @@ Subject: [PATCH] Backport #611  (#631)
  2 files changed, 21 insertions(+), 7 deletions(-)
 
 diff --git a/core/src/banking_stage/unprocessed_transaction_storage.rs b/core/src/banking_stage/unprocessed_transaction_storage.rs
-index ae487952c8..85aef1d331 100644
+index aeb78148c4..f538edc19c 100644
 --- a/core/src/banking_stage/unprocessed_transaction_storage.rs
 +++ b/core/src/banking_stage/unprocessed_transaction_storage.rs
 @@ -21,7 +21,7 @@ use {
@@ -21,7 +21,7 @@ index ae487952c8..85aef1d331 100644
      solana_measure::{measure, measure_us},
      solana_runtime::bank::Bank,
      solana_sdk::{
-@@ -1314,6 +1314,25 @@ impl BundleStorage {
+@@ -1317,6 +1317,25 @@ impl BundleStorage {
                          rebuffered_bundles.push(deserialized_bundle);
                          is_slot_over = true;
                      }
@@ -47,7 +47,7 @@ index ae487952c8..85aef1d331 100644
                      Err(BundleExecutionError::TransactionFailure(e)) => {
                          debug!(
                              "bundle={} execution error: {:?}",
-@@ -1321,11 +1340,6 @@ impl BundleStorage {
+@@ -1324,11 +1343,6 @@ impl BundleStorage {
                          );
                          // do nothing
                      }

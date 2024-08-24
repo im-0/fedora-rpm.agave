@@ -1,4 +1,4 @@
-From 93fa888705663fbe2cd5b8b9c3bbafd573ef60bf Mon Sep 17 00:00:00 2001
+From fe235f945412488e65c8340de640088d8c214d77 Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Thu, 25 Aug 2022 17:18:46 -0500
 Subject: [PATCH] jito patch only reroute if relayer connected (#123) feat: add
@@ -329,7 +329,7 @@ update jito-programs submodule
  core/src/banking_stage/consumer.rs            |  195 +-
  .../banking_stage/latest_unprocessed_votes.rs |    2 +-
  core/src/banking_stage/qos_service.rs         |   48 +-
- .../unprocessed_transaction_storage.rs        |  451 ++++-
+ .../unprocessed_transaction_storage.rs        |  452 ++++-
  core/src/banking_trace.rs                     |    1 +
  core/src/bundle_stage.rs                      |  434 +++++
  .../src/bundle_stage/bundle_account_locker.rs |  326 ++++
@@ -434,7 +434,7 @@ update jito-programs submodule
  start_multi                                   |   30 +
  svm/src/account_loader.rs                     |    5 +
  svm/src/account_overrides.rs                  |    6 +-
- svm/src/transaction_processor.rs              |   27 +-
+ svm/src/transaction_processor.rs              |    2 +-
  test-validator/src/lib.rs                     |    1 +
  tip-distributor/Cargo.toml                    |   61 +
  tip-distributor/README.md                     |   52 +
@@ -465,7 +465,7 @@ update jito-programs submodule
  validator/src/main.rs                         |  268 ++-
  version/src/lib.rs                            |    2 +-
  wen-restart/src/wen_restart.rs                |    4 +-
- 182 files changed, 17799 insertions(+), 871 deletions(-)
+ 182 files changed, 17777 insertions(+), 869 deletions(-)
  create mode 100644 .dockerignore
  create mode 100644 .github/workflows/rebase.yaml
  create mode 100644 .gitmodules
@@ -623,15 +623,16 @@ index c348d69acb..bb402372c6 100644
        - name: Setup Node
          uses: actions/setup-node@v4
 diff --git a/.github/workflows/downstream-project-anchor.yml b/.github/workflows/downstream-project-anchor.yml
-index 52dcbdc5a2..abd69e2766 100644
+index 1ac129a3f6..ea0ff6046d 100644
 --- a/.github/workflows/downstream-project-anchor.yml
 +++ b/.github/workflows/downstream-project-anchor.yml
-@@ -43,9 +43,11 @@ jobs:
+@@ -43,10 +43,12 @@ jobs:
      runs-on: ubuntu-latest
      strategy:
        matrix:
 -        version: ["v0.29.0", "v0.30.0"]
 +        version: [ "v0.29.0", "v0.30.0" ]
+     if: false # Re-enable once new major versions for spl-token-2022 and spl-pod are out
      steps:
        - uses: actions/checkout@v4
 +        with:
@@ -971,11 +972,11 @@ index 0000000000..e31fc7fccd
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index 11def1a44d..d2bf7aea91 100644
+index 9ae98599c5..9ac142861c 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -154,7 +154,7 @@ name = "agave-ledger-tool"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
   "assert_cmd",
 - "bs58",
@@ -1635,7 +1636,7 @@ index 11def1a44d..d2bf7aea91 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.5"
++version = "2.0.7"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -1967,7 +1968,7 @@ index 11def1a44d..d2bf7aea91 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.5"
++version = "2.0.7"
 +dependencies = [
 + "anchor-lang",
 + "assert_matches",
@@ -1989,8 +1990,8 @@ index 11def1a44d..d2bf7aea91 100644
 +
  [[package]]
  name = "solana-cargo-build-bpf"
- version = "2.0.5"
-@@ -5846,7 +6191,7 @@ version = "2.0.5"
+ version = "2.0.7"
+@@ -5846,7 +6191,7 @@ version = "2.0.7"
  dependencies = [
   "assert_matches",
   "bincode",
@@ -2000,7 +2001,7 @@ index 11def1a44d..d2bf7aea91 100644
   "console",
   "const_format",
 @@ -6060,10 +6405,11 @@ name = "solana-core"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -2062,7 +2063,7 @@ index 11def1a44d..d2bf7aea91 100644
  ]
  
 @@ -6286,7 +6642,7 @@ name = "solana-frozen-abi"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
   "bitflags 2.5.0",
 - "bs58",
@@ -2072,7 +2073,7 @@ index 11def1a44d..d2bf7aea91 100644
   "im",
 @@ -6306,8 +6662,8 @@ dependencies = [
  name = "solana-frozen-abi-macro"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2082,7 +2083,7 @@ index 11def1a44d..d2bf7aea91 100644
   "syn 2.0.66",
  ]
 @@ -6353,7 +6709,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -2092,7 +2093,7 @@ index 11def1a44d..d2bf7aea91 100644
   "jsonrpc-core",
 @@ -6437,7 +6793,7 @@ dependencies = [
  name = "solana-keygen"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2110,7 +2111,7 @@ index 11def1a44d..d2bf7aea91 100644
   "chrono-humanize",
 @@ -6702,8 +7058,8 @@ dependencies = [
  name = "solana-package-metadata-macro"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2128,7 +2129,7 @@ index 11def1a44d..d2bf7aea91 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -6989,7 +7345,7 @@ version = "2.0.5"
+@@ -6989,7 +7345,7 @@ version = "2.0.7"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2162,7 +2163,7 @@ index 11def1a44d..d2bf7aea91 100644
   "crossbeam-channel",
   "futures 0.3.30",
   "indicatif",
-@@ -7080,7 +7438,7 @@ version = "2.0.5"
+@@ -7080,7 +7438,7 @@ version = "2.0.7"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -2183,7 +2184,7 @@ index 11def1a44d..d2bf7aea91 100644
   "solana-version",
   "thiserror",
 @@ -7119,13 +7479,14 @@ name = "solana-rpc-test"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2204,7 +2205,7 @@ index 11def1a44d..d2bf7aea91 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.5"
++version = "2.0.7"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -2222,10 +2223,10 @@ index 11def1a44d..d2bf7aea91 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.0.5"
+ version = "2.0.7"
 @@ -7247,12 +7626,14 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
 + "anchor-lang",
   "anyhow",
@@ -2241,7 +2242,7 @@ index 11def1a44d..d2bf7aea91 100644
   "byteorder",
 @@ -7305,9 +7686,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -2267,7 +2268,7 @@ index 11def1a44d..d2bf7aea91 100644
  ]
  
 @@ -7419,7 +7802,7 @@ name = "solana-storage-proto"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2281,7 +2282,7 @@ index 11def1a44d..d2bf7aea91 100644
  
 +[[package]]
 +name = "solana-tip-distributor"
-+version = "2.0.5"
++version = "2.0.7"
 +dependencies = [
 + "anchor-lang",
 + "clap 4.3.21",
@@ -2319,7 +2320,7 @@ index 11def1a44d..d2bf7aea91 100644
 +
  [[package]]
  name = "solana-tokens"
- version = "2.0.5"
+ version = "2.0.7"
 @@ -7685,7 +8106,7 @@ dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2331,7 +2332,7 @@ index 11def1a44d..d2bf7aea91 100644
   "serde",
 @@ -7900,7 +8321,7 @@ dependencies = [
  name = "solana-zk-keygen"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2669,7 +2670,7 @@ index 11def1a44d..d2bf7aea91 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index 7ae1934b6a..c091809cfd 100644
+index ac7fa1fcee..2f898bbef0 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -19,6 +19,7 @@ members = [
@@ -2730,7 +2731,7 @@ index 7ae1934b6a..c091809cfd 100644
      "unprefixed_malloc_on_supported_platforms",
  ] }
  js-sys = "0.3.69"
-+jito-protos = { path = "jito-protos", version = "=2.0.5" }
++jito-protos = { path = "jito-protos", version = "=2.0.7" }
 +jito-tip-distribution = { path = "jito-programs/mev-programs/programs/tip-distribution", features = ["no-entrypoint"] }
 +jito-tip-payment = { path = "jito-programs/mev-programs/programs/tip-payment", features = ["no-entrypoint"] }
  json5 = "0.4.1"
@@ -2744,22 +2745,22 @@ index 7ae1934b6a..c091809cfd 100644
  lazy-lru = "0.1.2"
  lazy_static = "1.4.0"
  libc = "0.2.155"
-@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.5" }
- solana-bloom = { path = "bloom", version = "=2.0.5" }
- solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.5" }
- solana-bucket-map = { path = "bucket_map", version = "=2.0.5" }
-+solana-bundle = { path = "bundle", version = "=2.0.5" }
- agave-cargo-registry = { path = "cargo-registry", version = "=2.0.5" }
- solana-clap-utils = { path = "clap-utils", version = "=2.0.5" }
- solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.5" }
-@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.5", default-features
- solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.5" }
- solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.5" }
- solana-runtime = { path = "runtime", version = "=2.0.5" }
-+solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.5" }
- solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.5" }
- solana-sdk = { path = "sdk", version = "=2.0.5" }
- solana-sdk-macro = { path = "sdk/macro", version = "=2.0.5" }
+@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.7" }
+ solana-bloom = { path = "bloom", version = "=2.0.7" }
+ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.7" }
+ solana-bucket-map = { path = "bucket_map", version = "=2.0.7" }
++solana-bundle = { path = "bundle", version = "=2.0.7" }
+ agave-cargo-registry = { path = "cargo-registry", version = "=2.0.7" }
+ solana-clap-utils = { path = "clap-utils", version = "=2.0.7" }
+ solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.7" }
+@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.7", default-features
+ solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.7" }
+ solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.7" }
+ solana-runtime = { path = "runtime", version = "=2.0.7" }
++solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.7" }
+ solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.7" }
+ solana-sdk = { path = "sdk", version = "=2.0.7" }
+ solana-sdk-macro = { path = "sdk/macro", version = "=2.0.7" }
 diff --git a/README.md b/README.md
 index 0d855e8cc8..4369c4bcb4 100644
 --- a/README.md
@@ -6062,10 +6063,10 @@ index 3493a5f3a8..9e74ebb4dd 100644
          assert_eq!(expected_units, units);
          assert_eq!(expected_us, us);
 diff --git a/core/src/banking_stage/latest_unprocessed_votes.rs b/core/src/banking_stage/latest_unprocessed_votes.rs
-index 084e4125b8..ed0f1e50ba 100644
+index 6e9f20441d..8f6ce22800 100644
 --- a/core/src/banking_stage/latest_unprocessed_votes.rs
 +++ b/core/src/banking_stage/latest_unprocessed_votes.rs
-@@ -139,7 +139,7 @@ pub(crate) fn weighted_random_order_by_stake<'a>(
+@@ -140,7 +140,7 @@ pub(crate) fn weighted_random_order_by_stake<'a>(
  }
  
  #[derive(Default, Debug)]
@@ -6197,7 +6198,7 @@ index bf8b7df963..ecc1d8c4b6 100644
                  total_txs_cost,
                  bank.read_cost_tracker().unwrap().block_cost()
 diff --git a/core/src/banking_stage/unprocessed_transaction_storage.rs b/core/src/banking_stage/unprocessed_transaction_storage.rs
-index e790993dfc..ae487952c8 100644
+index 7a529bd457..aeb78148c4 100644
 --- a/core/src/banking_stage/unprocessed_transaction_storage.rs
 +++ b/core/src/banking_stage/unprocessed_transaction_storage.rs
 @@ -15,18 +15,29 @@ use {
@@ -6479,7 +6480,7 @@ index e790993dfc..ae487952c8 100644
              };
  
          // Based on the stake distribution present in the supplied bank, drain the unprocessed votes
-@@ -576,6 +694,7 @@ impl ThreadLocalUnprocessedPackets {
+@@ -579,6 +697,7 @@ impl ThreadLocalUnprocessedPackets {
              ThreadType::Transactions => ForwardOption::ForwardTransaction,
              ThreadType::Voting(VoteSource::Tpu) => ForwardOption::ForwardTpuVote,
              ThreadType::Voting(VoteSource::Gossip) => ForwardOption::NotForward,
@@ -6487,7 +6488,7 @@ index e790993dfc..ae487952c8 100644
          }
      }
  
-@@ -901,6 +1020,7 @@ impl ThreadLocalUnprocessedPackets {
+@@ -904,6 +1023,7 @@ impl ThreadLocalUnprocessedPackets {
          banking_stage_stats: &BankingStageStats,
          slot_metrics_tracker: &mut LeaderSlotMetricsTracker,
          mut processing_function: F,
@@ -6495,7 +6496,7 @@ index e790993dfc..ae487952c8 100644
      ) -> bool
      where
          F: FnMut(
-@@ -915,7 +1035,13 @@ impl ThreadLocalUnprocessedPackets {
+@@ -918,7 +1038,13 @@ impl ThreadLocalUnprocessedPackets {
  
          let should_process_packet =
              |packet: &Arc<ImmutableDeserializedPacket>, payload: &mut ConsumeScannerPayload| {
@@ -6510,7 +6511,7 @@ index e790993dfc..ae487952c8 100644
              };
          let mut scanner = create_consume_multi_iterator(
              &all_packets_to_process,
-@@ -992,6 +1118,319 @@ impl ThreadLocalUnprocessedPackets {
+@@ -995,6 +1121,319 @@ impl ThreadLocalUnprocessedPackets {
      }
  }
  
@@ -6830,6 +6831,14 @@ index e790993dfc..ae487952c8 100644
  #[cfg(test)]
  mod tests {
      use {
+@@ -1315,6 +1754,7 @@ mod tests {
+                         .collect_vec(),
+                 )
+             },
++            &HashSet::default(),
+         );
+ 
+         // All packets should remain in the transaction storage
 diff --git a/core/src/banking_trace.rs b/core/src/banking_trace.rs
 index c2b3c38695..96358b245f 100644
 --- a/core/src/banking_trace.rs
@@ -15353,7 +15362,7 @@ index 97fb1c50aa..97de447388 100755
  echo "solana-genesis command-line arguments (spl-genesis-args.sh):"
  cat spl-genesis-args.sh
 diff --git a/gossip/src/cluster_info.rs b/gossip/src/cluster_info.rs
-index a9a14b5557..4ebbfe4523 100644
+index 00e0b4869e..01bc819743 100644
 --- a/gossip/src/cluster_info.rs
 +++ b/gossip/src/cluster_info.rs
 @@ -572,6 +572,10 @@ impl ClusterInfo {
@@ -16394,7 +16403,7 @@ index 6078961d42..cbad41c510 100644
      if packet.meta().discard() {
          return false;
 diff --git a/poh/src/poh_recorder.rs b/poh/src/poh_recorder.rs
-index 3ac35335c7..e909ab0f62 100644
+index 5bf701aa5d..23a5a17e73 100644
 --- a/poh/src/poh_recorder.rs
 +++ b/poh/src/poh_recorder.rs
 @@ -58,9 +58,14 @@ pub enum PohRecorderError {
@@ -16485,7 +16494,7 @@ index 3ac35335c7..e909ab0f62 100644
          if res.is_err() {
              // If the channel is dropped, then the validator is shutting down so return that we are hitting
              //  the max tick height to stop transaction processing and flush any transactions in the pipeline.
-@@ -762,7 +769,10 @@ impl PohRecorder {
+@@ -771,7 +778,10 @@ impl PohRecorder {
  
              for tick in &self.tick_cache[..entry_count] {
                  working_bank.bank.register_tick(&tick.0.hash);
@@ -16497,7 +16506,7 @@ index 3ac35335c7..e909ab0f62 100644
                  if send_result.is_err() {
                      break;
                  }
-@@ -942,16 +952,23 @@ impl PohRecorder {
+@@ -951,16 +961,23 @@ impl PohRecorder {
      pub fn record(
          &mut self,
          bank_slot: Slot,
@@ -16524,7 +16533,7 @@ index 3ac35335c7..e909ab0f62 100644
          loop {
              let (flush_cache_res, flush_cache_time) =
                  measure!(self.flush_cache(false), "flush_cache");
-@@ -969,23 +986,36 @@ impl PohRecorder {
+@@ -978,23 +995,36 @@ impl PohRecorder {
              let (mut poh_lock, poh_lock_time) = measure!(self.poh.lock().unwrap(), "poh_lock");
              self.record_lock_contention_us += poh_lock_time.as_us();
  
@@ -16571,7 +16580,7 @@ index 3ac35335c7..e909ab0f62 100644
                      },
                      "send_poh_entry",
                  );
-@@ -1349,7 +1379,11 @@ mod tests {
+@@ -1358,7 +1388,11 @@ mod tests {
          assert_eq!(poh_recorder.tick_height, tick_height_before + 1);
          assert_eq!(poh_recorder.tick_cache.len(), 0);
          let mut num_entries = 0;
@@ -16584,7 +16593,7 @@ index 3ac35335c7..e909ab0f62 100644
              assert_eq!(wbank.slot(), bank1.slot());
              num_entries += 1;
          }
-@@ -1436,7 +1470,7 @@ mod tests {
+@@ -1445,7 +1479,7 @@ mod tests {
          // We haven't yet reached the minimum tick height for the working bank,
          // so record should fail
          assert_matches!(
@@ -16593,7 +16602,7 @@ index 3ac35335c7..e909ab0f62 100644
              Err(PohRecorderError::MinHeightNotReached)
          );
          assert!(entry_receiver.try_recv().is_err());
-@@ -1475,7 +1509,7 @@ mod tests {
+@@ -1484,7 +1518,7 @@ mod tests {
          // However we hand over a bad slot so record fails
          let bad_slot = bank.slot() + 1;
          assert_matches!(
@@ -16602,7 +16611,7 @@ index 3ac35335c7..e909ab0f62 100644
              Err(PohRecorderError::MaxHeightReached)
          );
      }
-@@ -1518,18 +1552,26 @@ mod tests {
+@@ -1527,18 +1561,26 @@ mod tests {
          let tx = test_tx();
          let h1 = hash(b"hello world!");
          assert!(poh_recorder
@@ -16634,7 +16643,7 @@ index 3ac35335c7..e909ab0f62 100644
      }
  
      #[test]
-@@ -1560,11 +1602,15 @@ mod tests {
+@@ -1569,11 +1611,15 @@ mod tests {
          let tx = test_tx();
          let h1 = hash(b"hello world!");
          assert!(poh_recorder
@@ -16653,7 +16662,7 @@ index 3ac35335c7..e909ab0f62 100644
          }
      }
  
-@@ -1604,7 +1650,7 @@ mod tests {
+@@ -1613,7 +1659,7 @@ mod tests {
          let tx1 = test_tx();
          let h1 = hash(b"hello world!");
          let record_result = poh_recorder
@@ -16662,7 +16671,7 @@ index 3ac35335c7..e909ab0f62 100644
              .unwrap()
              .unwrap();
          assert_eq!(record_result, 0);
-@@ -1621,7 +1667,7 @@ mod tests {
+@@ -1630,7 +1676,7 @@ mod tests {
          let tx = test_tx();
          let h2 = hash(b"foobar");
          let record_result = poh_recorder
@@ -16671,7 +16680,7 @@ index 3ac35335c7..e909ab0f62 100644
              .unwrap()
              .unwrap();
          assert_eq!(record_result, 2);
-@@ -1860,7 +1906,7 @@ mod tests {
+@@ -1869,7 +1915,7 @@ mod tests {
          let tx = test_tx();
          let h1 = hash(b"hello world!");
          assert!(poh_recorder
@@ -21423,7 +21432,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index 812a898c31..fde944a02e 100644
+index 72843ad15b..1ec5c4595c 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -123,6 +123,7 @@ dependencies = [
@@ -21927,7 +21936,7 @@ index 812a898c31..fde944a02e 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.3"
++version = "2.0.7"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -22248,7 +22257,7 @@ index 812a898c31..fde944a02e 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.3"
++version = "2.0.7"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -22269,9 +22278,9 @@ index 812a898c31..fde944a02e 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.0.5"
+ version = "2.0.7"
 @@ -4832,9 +5111,10 @@ name = "solana-core"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -22326,7 +22335,7 @@ index 812a898c31..fde944a02e 100644
  ]
  
 @@ -5005,7 +5294,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -22343,7 +22352,7 @@ index 812a898c31..fde944a02e 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -5454,7 +5743,7 @@ version = "2.0.5"
+@@ -5454,7 +5743,7 @@ version = "2.0.7"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -22377,7 +22386,7 @@ index 812a898c31..fde944a02e 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -5536,7 +5827,7 @@ version = "2.0.5"
+@@ -5536,7 +5827,7 @@ version = "2.0.7"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -22403,7 +22412,7 @@ index 812a898c31..fde944a02e 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.3"
++version = "2.0.7"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -22421,10 +22430,10 @@ index 812a898c31..fde944a02e 100644
 +
  [[package]]
  name = "solana-sbf-programs"
- version = "2.0.5"
+ version = "2.0.7"
 @@ -6102,10 +6413,12 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
 + "anchor-lang",
 + "base64 0.22.1",
@@ -22438,7 +22447,7 @@ index 812a898c31..fde944a02e 100644
   "byteorder 1.5.0",
 @@ -6150,9 +6463,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -22458,7 +22467,7 @@ index 812a898c31..fde944a02e 100644
   "solana-metrics",
   "solana-runtime",
 @@ -6229,7 +6543,7 @@ name = "solana-storage-proto"
- version = "2.0.5"
+ version = "2.0.7"
  dependencies = [
   "bincode",
 - "bs58",
@@ -24678,7 +24687,7 @@ index 0000000000..5fcb625a26
 +    }
 +}
 diff --git a/runtime/src/bank.rs b/runtime/src/bank.rs
-index 0f5e43ddea..0037662b93 100644
+index 4efac31940..ad763a1288 100644
 --- a/runtime/src/bank.rs
 +++ b/runtime/src/bank.rs
 @@ -67,7 +67,7 @@ use {
@@ -24730,7 +24739,7 @@ index 0f5e43ddea..0037662b93 100644
  
      /// staked nodes on epoch boundaries, saved off when a bank.slot() is at
      ///   a leader schedule calculation boundary
-@@ -3297,17 +3314,61 @@ impl Bank {
+@@ -3296,17 +3313,61 @@ impl Bank {
          &'a self,
          transactions: &'b [SanitizedTransaction],
          transaction_results: impl Iterator<Item = Result<()>>,
@@ -24793,7 +24802,7 @@ index 0f5e43ddea..0037662b93 100644
      /// Prepare a transaction batch from a single transaction without locking accounts
      pub fn prepare_unlocked_batch_from_single_tx<'a>(
          &'a self,
-@@ -3429,7 +3490,11 @@ impl Bank {
+@@ -3428,7 +3489,11 @@ impl Bank {
          }
      }
  
@@ -24806,7 +24815,7 @@ index 0f5e43ddea..0037662b93 100644
          let mut account_overrides = AccountOverrides::default();
          let slot_history_id = sysvar::slot_history::id();
          if account_keys.iter().any(|pubkey| *pubkey == slot_history_id) {
-@@ -3617,6 +3682,30 @@ impl Bank {
+@@ -3616,6 +3681,30 @@ impl Bank {
          balances
      }
  
@@ -24985,7 +24994,7 @@ index 5d407eaf0b..7e0b55d9fd 100644
              None
          );
 diff --git a/runtime/src/stake_account.rs b/runtime/src/stake_account.rs
-index ea4ed6dd0f..017b6fb52f 100644
+index d735e2fe7a..9a943cacba 100644
 --- a/runtime/src/stake_account.rs
 +++ b/runtime/src/stake_account.rs
 @@ -41,14 +41,14 @@ impl<T> StakeAccount<T> {
@@ -25000,16 +25009,16 @@ index ea4ed6dd0f..017b6fb52f 100644
  
  impl StakeAccount<Delegation> {
      #[inline]
--    pub(crate) fn delegation(&self) -> Delegation {
-+    pub fn delegation(&self) -> Delegation {
+-    pub(crate) fn delegation(&self) -> &Delegation {
++    pub fn delegation(&self) -> &Delegation {
          // Safe to unwrap here because StakeAccount<Delegation> will always
          // only wrap a stake-state which is a delegation.
-         self.stake_state.delegation().unwrap()
+         self.stake_state.delegation_ref().unwrap()
 diff --git a/runtime/src/stakes.rs b/runtime/src/stakes.rs
-index 27ec9d683c..08a7ed9581 100644
+index 53e563889d..88d086e91f 100644
 --- a/runtime/src/stakes.rs
 +++ b/runtime/src/stakes.rs
-@@ -49,18 +49,18 @@ pub enum InvalidCacheEntryReason {
+@@ -52,18 +52,18 @@ pub enum InvalidCacheEntryReason {
      WrongOwner,
  }
  
@@ -25031,7 +25040,7 @@ index 27ec9d683c..08a7ed9581 100644
          self.0.read().unwrap()
      }
  
-@@ -188,7 +188,7 @@ pub struct Stakes<T: Clone> {
+@@ -191,7 +191,7 @@ pub struct Stakes<T: Clone> {
      vote_accounts: VoteAccounts,
  
      /// stake_delegations
@@ -25040,7 +25049,7 @@ index 27ec9d683c..08a7ed9581 100644
  
      /// unused
      unused: u64,
-@@ -231,7 +231,7 @@ impl Stakes<StakeAccount> {
+@@ -234,7 +234,7 @@ impl Stakes<StakeAccount> {
      /// full account state for respective stake pubkeys. get_account function
      /// should return the account at the respective slot where stakes where
      /// cached.
@@ -25049,7 +25058,7 @@ index 27ec9d683c..08a7ed9581 100644
      where
          F: Fn(&Pubkey) -> Option<AccountSharedData> + Sync,
      {
-@@ -471,7 +471,7 @@ impl Stakes<StakeAccount> {
+@@ -474,7 +474,7 @@ impl Stakes<StakeAccount> {
          );
      }
  
@@ -25553,138 +25562,18 @@ index 8a205a798f..b92ba7d0ad 100644
      pub fn set_account(&mut self, pubkey: &Pubkey, account: Option<AccountSharedData>) {
          match account {
 diff --git a/svm/src/transaction_processor.rs b/svm/src/transaction_processor.rs
-index 0013dbc485..3ab16f258f 100644
+index edcba870c6..feb37beeb0 100644
 --- a/svm/src/transaction_processor.rs
 +++ b/svm/src/transaction_processor.rs
-@@ -244,7 +244,8 @@ impl<FG: ForkGraph> TransactionBatchProcessor<FG> {
+@@ -245,7 +245,7 @@ impl<FG: ForkGraph> TransactionBatchProcessor<FG> {
              environment
                  .rent_collector
                  .unwrap_or(&RentCollector::default()),
 -            &mut error_metrics
 +            &mut error_metrics,
-+            config.account_overrides
          ));
  
          let mut program_cache_time = Measure::start("program_cache");
-@@ -386,6 +387,7 @@ impl<FG: ForkGraph> TransactionBatchProcessor<FG> {
-         fee_structure: &FeeStructure,
-         rent_collector: &RentCollector,
-         error_counters: &mut TransactionErrorMetrics,
-+        account_overrides: Option<&AccountOverrides>,
-     ) -> Vec<TransactionValidationResult> {
-         sanitized_txs
-             .iter()
-@@ -401,6 +403,7 @@ impl<FG: ForkGraph> TransactionBatchProcessor<FG> {
-                         fee_structure,
-                         rent_collector,
-                         error_counters,
-+                        account_overrides,
-                     )
-                 })
-             })
-@@ -419,6 +422,7 @@ impl<FG: ForkGraph> TransactionBatchProcessor<FG> {
-         fee_structure: &FeeStructure,
-         rent_collector: &RentCollector,
-         error_counters: &mut TransactionErrorMetrics,
-+        account_overrides: Option<&AccountOverrides>,
-     ) -> transaction::Result<ValidatedTransactionDetails> {
-         let compute_budget_limits = process_compute_budget_instructions(
-             message.program_instructions_iter(),
-@@ -429,8 +433,14 @@ impl<FG: ForkGraph> TransactionBatchProcessor<FG> {
-         })?;
- 
-         let fee_payer_address = message.fee_payer();
--        let Some(mut fee_payer_account) = callbacks.get_account_shared_data(fee_payer_address)
--        else {
-+        let maybe_account = if let Some(account_override) =
-+            account_overrides.and_then(|overrides| overrides.get(fee_payer_address))
-+        {
-+            Some(account_override.clone())
-+        } else {
-+            callbacks.get_account_shared_data(fee_payer_address)
-+        };
-+        let Some(mut fee_payer_account) = maybe_account else {
-             error_counters.account_not_found += 1;
-             return Err(TransactionError::AccountNotFound);
-         };
-@@ -2010,6 +2020,7 @@ mod tests {
-             &FeeStructure::default(),
-             &rent_collector,
-             &mut error_counters,
-+            None,
-         );
- 
-         let post_validation_fee_payer_account = {
-@@ -2082,6 +2093,7 @@ mod tests {
-             &FeeStructure::default(),
-             &rent_collector,
-             &mut error_counters,
-+            None,
-         );
- 
-         let post_validation_fee_payer_account = {
-@@ -2129,6 +2141,7 @@ mod tests {
-             &FeeStructure::default(),
-             &RentCollector::default(),
-             &mut error_counters,
-+            None,
-         );
- 
-         assert_eq!(error_counters.account_not_found, 1);
-@@ -2161,6 +2174,7 @@ mod tests {
-             &FeeStructure::default(),
-             &RentCollector::default(),
-             &mut error_counters,
-+            None,
-         );
- 
-         assert_eq!(error_counters.insufficient_funds, 1);
-@@ -2197,6 +2211,7 @@ mod tests {
-             &FeeStructure::default(),
-             &rent_collector,
-             &mut error_counters,
-+            None,
-         );
- 
-         assert_eq!(
-@@ -2231,6 +2246,7 @@ mod tests {
-             &FeeStructure::default(),
-             &RentCollector::default(),
-             &mut error_counters,
-+            None,
-         );
- 
-         assert_eq!(error_counters.invalid_account_for_fee, 1);
-@@ -2262,6 +2278,7 @@ mod tests {
-             &FeeStructure::default(),
-             &RentCollector::default(),
-             &mut error_counters,
-+            None,
-         );
- 
-         assert_eq!(error_counters.invalid_compute_budget, 1);
-@@ -2323,6 +2340,7 @@ mod tests {
-                 &FeeStructure::default(),
-                 &rent_collector,
-                 &mut error_counters,
-+                None,
-             );
- 
-             let post_validation_fee_payer_account = {
-@@ -2380,10 +2398,13 @@ mod tests {
-                 &FeeStructure::default(),
-                 &rent_collector,
-                 &mut error_counters,
-+                None,
-             );
- 
-             assert_eq!(error_counters.insufficient_funds, 1);
-             assert_eq!(result, Err(TransactionError::InsufficientFundsForFee));
-         }
-     }
-+
-+    // TODO (LB): test loading invalid fee payer from cache w/ valid (and invalid) fees
- }
 diff --git a/test-validator/src/lib.rs b/test-validator/src/lib.rs
 index da0d669b76..ddd526b23d 100644
 --- a/test-validator/src/lib.rs
@@ -29538,7 +29427,7 @@ index e9ed6a1a6e..c0fa09ce7d 100644
      }
      fn record(&mut self, receiver: &RecordReceiver, blockstore: &Blockstore) -> Result<()> {
 diff --git a/turbine/src/broadcast_stage/standard_broadcast_run.rs b/turbine/src/broadcast_stage/standard_broadcast_run.rs
-index 0ddbe1020f..de63c04961 100644
+index 4bcdebf27e..a43805bb72 100644
 --- a/turbine/src/broadcast_stage/standard_broadcast_run.rs
 +++ b/turbine/src/broadcast_stage/standard_broadcast_run.rs
 @@ -17,7 +17,7 @@ use {
