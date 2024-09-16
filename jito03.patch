@@ -1,7 +1,7 @@
-From 421333f38430d76bc9b4bc735fc9f847156dbb51 Mon Sep 17 00:00:00 2001
+From 9f8acb5fe6c565188d18957b6c105f232a857a95 Mon Sep 17 00:00:00 2001
 From: buffalu <85544055+buffalu@users.noreply.github.com>
 Date: Sun, 21 Jul 2024 13:22:01 -0700
-Subject: [PATCH] Backport #611  (#631)
+Subject: [PATCH 3/5] Backport #611 (#631)
 
 ---
  .../unprocessed_transaction_storage.rs        | 26 ++++++++++++++-----
@@ -9,7 +9,7 @@ Subject: [PATCH] Backport #611  (#631)
  2 files changed, 21 insertions(+), 7 deletions(-)
 
 diff --git a/core/src/banking_stage/unprocessed_transaction_storage.rs b/core/src/banking_stage/unprocessed_transaction_storage.rs
-index aeb78148c4..f538edc19c 100644
+index aeb78148c487..f538edc19c4c 100644
 --- a/core/src/banking_stage/unprocessed_transaction_storage.rs
 +++ b/core/src/banking_stage/unprocessed_transaction_storage.rs
 @@ -21,7 +21,7 @@ use {
@@ -60,7 +60,7 @@ index aeb78148c4..f538edc19c 100644
                          debug!("bundle={} tip error: {}", sanitized_bundle.bundle_id, e);
                          // Tip errors are _typically_ due to misconfiguration (except for poh record error, bank processing error, exceeds cost model)
 diff --git a/core/src/bundle_stage.rs b/core/src/bundle_stage.rs
-index e935529df5..a5bb2ec515 100644
+index e935529df505..a5bb2ec515cb 100644
 --- a/core/src/bundle_stage.rs
 +++ b/core/src/bundle_stage.rs
 @@ -46,7 +46,7 @@ mod bundle_reserved_space_manager;
@@ -72,3 +72,6 @@ index e935529df5..a5bb2ec515 100644
  const SLOT_BOUNDARY_CHECK_PERIOD: Duration = Duration::from_millis(10);
  
  // Stats emitted periodically
+-- 
+2.46.0
+

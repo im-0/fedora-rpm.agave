@@ -1,7 +1,7 @@
-From 8ce11f8f9f0ffe4bbd8ea539162579fc81a3ef0a Mon Sep 17 00:00:00 2001
+From c53c458700b38ee90b6daea47b81822681595aa5 Mon Sep 17 00:00:00 2001
 From: buffalu <85544055+buffalu@users.noreply.github.com>
 Date: Fri, 9 Aug 2024 10:25:38 -0500
-Subject: [PATCH] Add packet flag for from staked sender (#655)
+Subject: [PATCH 5/5] Add packet flag for from staked sender (#655)
 
 Co-authored-by: Jed <4679729+jedleggett@users.noreply.github.com>
 ---
@@ -10,7 +10,7 @@ Co-authored-by: Jed <4679729+jedleggett@users.noreply.github.com>
  2 files changed, 7 insertions(+)
 
 diff --git a/core/benches/proto_to_packet.rs b/core/benches/proto_to_packet.rs
-index 87f85f9c7f..1727d8af9c 100644
+index 87f85f9c7fef..1727d8af9cdb 100644
 --- a/core/benches/proto_to_packet.rs
 +++ b/core/benches/proto_to_packet.rs
 @@ -25,6 +25,7 @@ fn get_proto_packet(i: u8) -> PbPacket {
@@ -22,7 +22,7 @@ index 87f85f9c7f..1727d8af9c 100644
              sender_stake: 0,
          }),
 diff --git a/core/src/lib.rs b/core/src/lib.rs
-index 5c4aa86523..9d6908b317 100644
+index 5c4aa8652313..9d6908b317e9 100644
 --- a/core/src/lib.rs
 +++ b/core/src/lib.rs
 @@ -106,6 +106,12 @@ pub fn proto_packet_to_packet(p: jito_protos::proto::packet::Packet) -> Packet {
@@ -38,3 +38,6 @@ index 5c4aa86523..9d6908b317 100644
          }
      }
      packet
+-- 
+2.46.0
+
