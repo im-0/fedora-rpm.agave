@@ -1,7 +1,7 @@
-From 0029230ff36e26885028157ab33bc1d1008f7a75 Mon Sep 17 00:00:00 2001
+From c68972a63418ab6e75445f2265529164b2a6c259 Mon Sep 17 00:00:00 2001
 From: buffalu <85544055+buffalu@users.noreply.github.com>
 Date: Mon, 22 Jul 2024 10:44:49 -0700
-Subject: [PATCH 4/5] Publish releases to S3 and GCS (#633) (#634)
+Subject: [PATCH] Publish releases to S3 and GCS (#633) (#634)
 
 ---
  ci/publish-installer.sh | 5 +++++
@@ -9,7 +9,7 @@ Subject: [PATCH 4/5] Publish releases to S3 and GCS (#633) (#634)
  2 files changed, 9 insertions(+)
 
 diff --git a/ci/publish-installer.sh b/ci/publish-installer.sh
-index b702e70285f0..2caf9900378d 100755
+index b702e70285..2caf990037 100755
 --- a/ci/publish-installer.sh
 +++ b/ci/publish-installer.sh
 @@ -35,6 +35,11 @@ cat install/agave-install-init.sh >>release.jito.wtf-install
@@ -25,7 +25,7 @@ index b702e70285f0..2caf9900378d 100755
  ci/format-url.sh https://release.jito.wtf/"$CHANNEL_OR_TAG"/install
  
 diff --git a/ci/publish-tarball.sh b/ci/publish-tarball.sh
-index 9401f74915f6..abad4f4209ae 100755
+index 9401f74915..abad4f4209 100755
 --- a/ci/publish-tarball.sh
 +++ b/ci/publish-tarball.sh
 @@ -121,6 +121,10 @@ for file in "${TARBALL_BASENAME}"-$TARGET.tar.bz2 "${TARBALL_BASENAME}"-$TARGET.
@@ -39,6 +39,3 @@ index 9401f74915f6..abad4f4209ae 100755
      echo Published to:
      $DRYRUN ci/format-url.sh https://release.jito.wtf/"$CHANNEL_OR_TAG"/"$file"
  
--- 
-2.46.0
-

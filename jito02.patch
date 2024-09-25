@@ -1,15 +1,14 @@
-From a36f60148c3904ed58b4def10d6793862007ef51 Mon Sep 17 00:00:00 2001
+From 272907a31f1bc9545a6bf7bd14ca53bc8c5e7af7 Mon Sep 17 00:00:00 2001
 From: buffalu <85544055+buffalu@users.noreply.github.com>
 Date: Sun, 21 Jul 2024 10:23:41 -0700
-Subject: [PATCH 2/5] Export agave binaries during docker build (BP #627)
- (#628)
+Subject: [PATCH] Export agave binaries during docker build (BP #627) (#628)
 
 ---
  dev/Dockerfile | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/dev/Dockerfile b/dev/Dockerfile
-index bab9a1c02fa4..012ca45974ce 100644
+index bab9a1c02f..012ca45974 100644
 --- a/dev/Dockerfile
 +++ b/dev/Dockerfile
 @@ -42,7 +42,7 @@ RUN --mount=type=cache,mode=0777,target=/solana/target \
@@ -22,6 +21,3 @@ index bab9a1c02fa4..012ca45974ce 100644
 -      RUSTFLAGS='-g -C force-frame-pointers=yes' ./cargo stable build --release && cp target/release/solana* ./docker-output; \
 +      RUSTFLAGS='-g -C force-frame-pointers=yes' ./cargo stable build --release && cp target/release/solana* ./docker-output && cp target/release/agave* ./docker-output; \
      fi
--- 
-2.46.0
-
