@@ -1,4 +1,4 @@
-From 6e9936c5974090a28651a0299a73db05964f9a94 Mon Sep 17 00:00:00 2001
+From 03f187267307d4d14dbf238d0e87fa42d344bcfe Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Thu, 25 Aug 2022 17:18:46 -0500
 Subject: [PATCH] jito patch only reroute if relayer connected (#123) feat: add
@@ -282,6 +282,18 @@ Add fast replay branch to daily rebase (#607)
 take a snapshot of all bundle accounts before sim (#13) (#615)
 
 update jito-programs submodule
+
+Export agave binaries during docker build (BP #627) (#628)
+
+Backport #611  (#631)
+
+Publish releases to S3 and GCS (#633) (#634)
+
+Add packet flag for from staked sender (#655)
+
+Co-authored-by: Jed <4679729+jedleggett@users.noreply.github.com>
+
+Add bundle storage to new unprocessed transaction storage method
 ---
  .dockerignore                                 |    9 +
  .github/workflows/cargo.yml                   |    2 +
@@ -314,14 +326,14 @@ update jito-programs submodule
  ci/buildkite-solana-private.sh                |    4 +-
  ci/channel-info.sh                            |    2 +-
  ci/check-crates.sh                            |    3 +
- ci/publish-installer.sh                       |   11 +-
- ci/publish-tarball.sh                         |    4 +-
+ ci/publish-installer.sh                       |   16 +-
+ ci/publish-tarball.sh                         |    8 +-
  ci/test-coverage.sh                           |    2 +-
  ci/upload-github-release-asset.sh             |    2 +-
  core/Cargo.toml                               |   13 +
  core/benches/banking_stage.rs                 |   24 +-
  core/benches/consumer.rs                      |   28 +-
- core/benches/proto_to_packet.rs               |   56 +
+ core/benches/proto_to_packet.rs               |   57 +
  core/src/admin_rpc_post_init.rs               |    8 +-
  core/src/banking_stage.rs                     |   85 +-
  core/src/banking_stage/committer.rs           |   17 +-
@@ -329,7 +341,7 @@ update jito-programs submodule
  core/src/banking_stage/consumer.rs            |  195 +-
  .../banking_stage/latest_unprocessed_votes.rs |    2 +-
  core/src/banking_stage/qos_service.rs         |   48 +-
- .../unprocessed_transaction_storage.rs        |  452 ++++-
+ .../unprocessed_transaction_storage.rs        |  467 ++++-
  core/src/banking_trace.rs                     |    1 +
  core/src/bundle_stage.rs                      |  434 +++++
  .../src/bundle_stage/bundle_account_locker.rs |  326 ++++
@@ -342,7 +354,7 @@ update jito-programs submodule
  core/src/bundle_stage/result.rs               |   41 +
  core/src/consensus_cache_updater.rs           |   52 +
  core/src/immutable_deserialized_bundle.rs     |  488 +++++
- core/src/lib.rs                               |   44 +
+ core/src/lib.rs                               |   50 +
  core/src/packet_bundle.rs                     |    7 +
  core/src/proxy/auth.rs                        |  185 ++
  core/src/proxy/block_engine_stage.rs          |  571 ++++++
@@ -465,7 +477,7 @@ update jito-programs submodule
  validator/src/main.rs                         |  268 ++-
  version/src/lib.rs                            |    2 +-
  wen-restart/src/wen_restart.rs                |    4 +-
- 182 files changed, 17778 insertions(+), 870 deletions(-)
+ 182 files changed, 17809 insertions(+), 870 deletions(-)
  create mode 100644 .dockerignore
  create mode 100644 .github/workflows/rebase.yaml
  create mode 100644 .gitmodules
@@ -972,11 +984,11 @@ index 0000000000..e31fc7fccd
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index bcd4ec8002..561c177d4a 100644
+index 1aaf6c6d0e..df1a7388ef 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -154,7 +154,7 @@ name = "agave-ledger-tool"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
   "assert_cmd",
 - "bs58",
@@ -1636,7 +1648,7 @@ index bcd4ec8002..561c177d4a 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.11"
++version = "2.0.13"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -1968,7 +1980,7 @@ index bcd4ec8002..561c177d4a 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.11"
++version = "2.0.13"
 +dependencies = [
 + "anchor-lang",
 + "assert_matches",
@@ -1990,8 +2002,8 @@ index bcd4ec8002..561c177d4a 100644
 +
  [[package]]
  name = "solana-cargo-build-bpf"
- version = "2.0.11"
-@@ -5846,7 +6191,7 @@ version = "2.0.11"
+ version = "2.0.13"
+@@ -5846,7 +6191,7 @@ version = "2.0.13"
  dependencies = [
   "assert_matches",
   "bincode",
@@ -2001,7 +2013,7 @@ index bcd4ec8002..561c177d4a 100644
   "console",
   "const_format",
 @@ -6060,10 +6405,11 @@ name = "solana-core"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -2063,7 +2075,7 @@ index bcd4ec8002..561c177d4a 100644
  ]
  
 @@ -6286,7 +6642,7 @@ name = "solana-frozen-abi"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
   "bitflags 2.5.0",
 - "bs58",
@@ -2073,7 +2085,7 @@ index bcd4ec8002..561c177d4a 100644
   "im",
 @@ -6306,8 +6662,8 @@ dependencies = [
  name = "solana-frozen-abi-macro"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2083,7 +2095,7 @@ index bcd4ec8002..561c177d4a 100644
   "syn 2.0.66",
  ]
 @@ -6353,7 +6709,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -2093,7 +2105,7 @@ index bcd4ec8002..561c177d4a 100644
   "jsonrpc-core",
 @@ -6437,7 +6793,7 @@ dependencies = [
  name = "solana-keygen"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2111,7 +2123,7 @@ index bcd4ec8002..561c177d4a 100644
   "chrono-humanize",
 @@ -6702,8 +7058,8 @@ dependencies = [
  name = "solana-package-metadata-macro"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2129,7 +2141,7 @@ index bcd4ec8002..561c177d4a 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -6989,7 +7345,7 @@ version = "2.0.11"
+@@ -6989,7 +7345,7 @@ version = "2.0.13"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2163,7 +2175,7 @@ index bcd4ec8002..561c177d4a 100644
   "crossbeam-channel",
   "futures 0.3.30",
   "indicatif",
-@@ -7080,7 +7438,7 @@ version = "2.0.11"
+@@ -7080,7 +7438,7 @@ version = "2.0.13"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -2184,7 +2196,7 @@ index bcd4ec8002..561c177d4a 100644
   "solana-version",
   "thiserror",
 @@ -7119,13 +7479,14 @@ name = "solana-rpc-test"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2205,7 +2217,7 @@ index bcd4ec8002..561c177d4a 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.11"
++version = "2.0.13"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -2223,10 +2235,10 @@ index bcd4ec8002..561c177d4a 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.0.11"
+ version = "2.0.13"
 @@ -7247,12 +7626,14 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
 + "anchor-lang",
   "anyhow",
@@ -2242,7 +2254,7 @@ index bcd4ec8002..561c177d4a 100644
   "byteorder",
 @@ -7305,9 +7686,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -2268,7 +2280,7 @@ index bcd4ec8002..561c177d4a 100644
  ]
  
 @@ -7419,7 +7802,7 @@ name = "solana-storage-proto"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2282,7 +2294,7 @@ index bcd4ec8002..561c177d4a 100644
  
 +[[package]]
 +name = "solana-tip-distributor"
-+version = "2.0.11"
++version = "2.0.13"
 +dependencies = [
 + "anchor-lang",
 + "clap 4.3.21",
@@ -2320,7 +2332,7 @@ index bcd4ec8002..561c177d4a 100644
 +
  [[package]]
  name = "solana-tokens"
- version = "2.0.11"
+ version = "2.0.13"
 @@ -7685,7 +8106,7 @@ dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2332,7 +2344,7 @@ index bcd4ec8002..561c177d4a 100644
   "serde",
 @@ -7900,7 +8321,7 @@ dependencies = [
  name = "solana-zk-keygen"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2670,7 +2682,7 @@ index bcd4ec8002..561c177d4a 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index 7057d15ecd..80c1fa2d77 100644
+index 1669be4d40..8cd70184fb 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -19,6 +19,7 @@ members = [
@@ -2731,7 +2743,7 @@ index 7057d15ecd..80c1fa2d77 100644
      "unprefixed_malloc_on_supported_platforms",
  ] }
  js-sys = "0.3.69"
-+jito-protos = { path = "jito-protos", version = "=2.0.11" }
++jito-protos = { path = "jito-protos", version = "=2.0.13" }
 +jito-tip-distribution = { path = "jito-programs/mev-programs/programs/tip-distribution", features = ["no-entrypoint"] }
 +jito-tip-payment = { path = "jito-programs/mev-programs/programs/tip-payment", features = ["no-entrypoint"] }
  json5 = "0.4.1"
@@ -2745,22 +2757,22 @@ index 7057d15ecd..80c1fa2d77 100644
  lazy-lru = "0.1.2"
  lazy_static = "1.4.0"
  libc = "0.2.155"
-@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.11" }
- solana-bloom = { path = "bloom", version = "=2.0.11" }
- solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.11" }
- solana-bucket-map = { path = "bucket_map", version = "=2.0.11" }
-+solana-bundle = { path = "bundle", version = "=2.0.11" }
- agave-cargo-registry = { path = "cargo-registry", version = "=2.0.11" }
- solana-clap-utils = { path = "clap-utils", version = "=2.0.11" }
- solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.11" }
-@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.11", default-features
- solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.11" }
- solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.11" }
- solana-runtime = { path = "runtime", version = "=2.0.11" }
-+solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.11" }
- solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.11" }
- solana-sdk = { path = "sdk", version = "=2.0.11" }
- solana-sdk-macro = { path = "sdk/macro", version = "=2.0.11" }
+@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.13" }
+ solana-bloom = { path = "bloom", version = "=2.0.13" }
+ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.13" }
+ solana-bucket-map = { path = "bucket_map", version = "=2.0.13" }
++solana-bundle = { path = "bundle", version = "=2.0.13" }
+ agave-cargo-registry = { path = "cargo-registry", version = "=2.0.13" }
+ solana-clap-utils = { path = "clap-utils", version = "=2.0.13" }
+ solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.13" }
+@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.13", default-features
+ solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.13" }
+ solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.13" }
+ solana-runtime = { path = "runtime", version = "=2.0.13" }
++solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.13" }
+ solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.13" }
+ solana-sdk = { path = "sdk", version = "=2.0.13" }
+ solana-sdk-macro = { path = "sdk/macro", version = "=2.0.13" }
 diff --git a/README.md b/README.md
 index 0d855e8cc8..4369c4bcb4 100644
 --- a/README.md
@@ -4739,7 +4751,7 @@ index 81b084ea75..c5877ee6f5 100755
    pull_or_push_steps
    exit 0
 diff --git a/ci/buildkite-pipeline.sh b/ci/buildkite-pipeline.sh
-index 7d19808ddb..78a17d0235 100755
+index f01797aea0..2ee47f93a3 100755
 --- a/ci/buildkite-pipeline.sh
 +++ b/ci/buildkite-pipeline.sh
 @@ -316,7 +316,7 @@ if [[ -n $BUILDKITE_TAG ]]; then
@@ -4880,10 +4892,10 @@ index 4f407824a3..802fe7b63c 100755
  
    if [[ $package_publish = 'false' ]]; then
 diff --git a/ci/publish-installer.sh b/ci/publish-installer.sh
-index f7d98ffd5d..b702e70285 100755
+index f7d98ffd5d..2caf990037 100755
 --- a/ci/publish-installer.sh
 +++ b/ci/publish-installer.sh
-@@ -26,14 +26,15 @@ fi
+@@ -26,14 +26,20 @@ fi
  # upload install script
  source ci/upload-ci-artifact.sh
  
@@ -4900,20 +4912,29 @@ index f7d98ffd5d..b702e70285 100755
  echo --- GCS: "install"
 -upload-gcs-artifact "/solana/release.anza.xyz-install" "gs://anza-release/$CHANNEL_OR_TAG/install"
 +upload-gcs-artifact "/solana/release.jito.wtf-install" "gs://jito-release/$CHANNEL_OR_TAG/install"
++
++# Jito added - releases need to support S3
++echo --- AWS S3 Store: "install"
++upload-s3-artifact "/solana/release.jito.wtf-install" "s3://release.jito.wtf/$CHANNEL_OR_TAG/install"
++
  echo Published to:
 -ci/format-url.sh https://release.anza.xyz/"$CHANNEL_OR_TAG"/install
 +ci/format-url.sh https://release.jito.wtf/"$CHANNEL_OR_TAG"/install
 +
 diff --git a/ci/publish-tarball.sh b/ci/publish-tarball.sh
-index 4746e9fb2f..9401f74915 100755
+index 4746e9fb2f..abad4f4209 100755
 --- a/ci/publish-tarball.sh
 +++ b/ci/publish-tarball.sh
-@@ -119,10 +119,10 @@ for file in "${TARBALL_BASENAME}"-$TARGET.tar.bz2 "${TARBALL_BASENAME}"-$TARGET.
+@@ -119,10 +119,14 @@ for file in "${TARBALL_BASENAME}"-$TARGET.tar.bz2 "${TARBALL_BASENAME}"-$TARGET.
  
    if [[ -n $BUILDKITE ]]; then
      echo --- GCS Store: "$file"
 -    upload-gcs-artifact "/solana/$file" gs://anza-release/"$CHANNEL_OR_TAG"/"$file"
 +    upload-gcs-artifact "/solana/$file" gs://jito-release/"$CHANNEL_OR_TAG"/"$file"
++
++    # Jito added - releases need to support S3
++    echo --- AWS S3 Store: "$file"
++    upload-s3-artifact "/solana/$file" s3://release.jito.wtf/"$CHANNEL_OR_TAG"/"$file"
  
      echo Published to:
 -    $DRYRUN ci/format-url.sh https://release.anza.xyz/"$CHANNEL_OR_TAG"/"$file"
@@ -5154,10 +5175,10 @@ index d736b93ef9..d0486219b0 100644
  fn setup() -> BenchFrame {
 diff --git a/core/benches/proto_to_packet.rs b/core/benches/proto_to_packet.rs
 new file mode 100644
-index 0000000000..87f85f9c7f
+index 0000000000..1727d8af9c
 --- /dev/null
 +++ b/core/benches/proto_to_packet.rs
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,57 @@
 +#![feature(test)]
 +
 +extern crate test;
@@ -5185,6 +5206,7 @@ index 0000000000..87f85f9c7f
 +                repair: false,
 +                simple_vote_tx: false,
 +                tracer_packet: false,
++                from_staked_node: false,
 +            }),
 +            sender_stake: 0,
 +        }),
@@ -5246,7 +5268,7 @@ index 364509a63b..425a4375c1 100644
 +    pub shred_receiver_address: Arc<RwLock<Option<SocketAddr>>>,
  }
 diff --git a/core/src/banking_stage.rs b/core/src/banking_stage.rs
-index 1bdd7defee..607b7ee10d 100644
+index 1771116098..b9150aa46c 100644
 --- a/core/src/banking_stage.rs
 +++ b/core/src/banking_stage.rs
 @@ -25,6 +25,7 @@ use {
@@ -5341,7 +5363,7 @@ index 1bdd7defee..607b7ee10d 100644
      ) -> Self {
          assert!(num_threads >= MIN_TOTAL_THREADS);
          // Single thread to generate entries from many banks.
-@@ -489,6 +504,8 @@ impl BankingStage {
+@@ -492,6 +507,8 @@ impl BankingStage {
                      log_messages_bytes_limit,
                      forwarder,
                      unprocessed_transaction_storage,
@@ -5350,7 +5372,7 @@ index 1bdd7defee..607b7ee10d 100644
                  )
              })
              .collect();
-@@ -510,6 +527,8 @@ impl BankingStage {
+@@ -513,6 +530,8 @@ impl BankingStage {
          bank_forks: Arc<RwLock<BankForks>>,
          prioritization_fee_cache: &Arc<PrioritizationFeeCache>,
          enable_forwarding: bool,
@@ -5359,7 +5381,7 @@ index 1bdd7defee..607b7ee10d 100644
      ) -> Self {
          assert!(num_threads >= MIN_TOTAL_THREADS);
          // Single thread to generate entries from many banks.
-@@ -554,6 +573,8 @@ impl BankingStage {
+@@ -560,6 +579,8 @@ impl BankingStage {
                      latest_unprocessed_votes.clone(),
                      vote_source,
                  ),
@@ -5368,7 +5390,7 @@ index 1bdd7defee..607b7ee10d 100644
              ));
          }
  
-@@ -575,6 +596,8 @@ impl BankingStage {
+@@ -581,6 +602,8 @@ impl BankingStage {
                      poh_recorder.read().unwrap().new_recorder(),
                      QosService::new(id),
                      log_messages_bytes_limit,
@@ -5377,7 +5399,7 @@ index 1bdd7defee..607b7ee10d 100644
                  ),
                  finished_work_sender.clone(),
                  poh_recorder.read().unwrap().new_leader_bank_notifier(),
-@@ -629,6 +652,7 @@ impl BankingStage {
+@@ -635,6 +658,7 @@ impl BankingStage {
          Self { bank_thread_hdls }
      }
  
@@ -5385,7 +5407,7 @@ index 1bdd7defee..607b7ee10d 100644
      fn spawn_thread_local_multi_iterator_thread(
          id: u32,
          packet_receiver: BankingPacketReceiver,
-@@ -639,13 +663,18 @@ impl BankingStage {
+@@ -645,13 +669,18 @@ impl BankingStage {
          log_messages_bytes_limit: Option<usize>,
          mut forwarder: Forwarder,
          unprocessed_transaction_storage: UnprocessedTransactionStorage,
@@ -5404,7 +5426,7 @@ index 1bdd7defee..607b7ee10d 100644
          );
  
          Builder::new()
-@@ -806,7 +835,7 @@ mod tests {
+@@ -812,7 +841,7 @@ mod tests {
          crate::banking_trace::{BankingPacketBatch, BankingTracer},
          crossbeam_channel::{unbounded, Receiver},
          itertools::Itertools,
@@ -5413,7 +5435,7 @@ index 1bdd7defee..607b7ee10d 100644
          solana_gossip::cluster_info::Node,
          solana_ledger::{
              blockstore::Blockstore,
-@@ -820,6 +849,7 @@ mod tests {
+@@ -826,6 +855,7 @@ mod tests {
          solana_poh::{
              poh_recorder::{
                  create_test_recorder, PohRecorderError, Record, RecordTransactionsSummary,
@@ -5421,7 +5443,7 @@ index 1bdd7defee..607b7ee10d 100644
              },
              poh_service::PohService,
          },
-@@ -891,6 +921,8 @@ mod tests {
+@@ -897,6 +927,8 @@ mod tests {
                  bank_forks,
                  &Arc::new(PrioritizationFeeCache::new(0u64)),
                  false,
@@ -5430,7 +5452,7 @@ index 1bdd7defee..607b7ee10d 100644
              );
              drop(non_vote_sender);
              drop(tpu_vote_sender);
-@@ -947,6 +979,8 @@ mod tests {
+@@ -953,6 +985,8 @@ mod tests {
                  bank_forks,
                  &Arc::new(PrioritizationFeeCache::new(0u64)),
                  false,
@@ -5439,7 +5461,7 @@ index 1bdd7defee..607b7ee10d 100644
              );
              trace!("sending bank");
              drop(non_vote_sender);
-@@ -959,7 +993,12 @@ mod tests {
+@@ -965,7 +999,12 @@ mod tests {
              trace!("getting entries");
              let entries: Vec<_> = entry_receiver
                  .iter()
@@ -5453,7 +5475,7 @@ index 1bdd7defee..607b7ee10d 100644
                  .collect();
              trace!("done");
              assert_eq!(entries.len(), genesis_config.ticks_per_slot as usize);
-@@ -1027,6 +1066,8 @@ mod tests {
+@@ -1033,6 +1072,8 @@ mod tests {
                  bank_forks.clone(), // keep a local-copy of bank-forks so worker threads do not lose weak access to bank-forks
                  &Arc::new(PrioritizationFeeCache::new(0u64)),
                  false,
@@ -5462,7 +5484,7 @@ index 1bdd7defee..607b7ee10d 100644
              );
  
              // fund another account so we can send 2 good transactions in a single batch.
-@@ -1078,9 +1119,14 @@ mod tests {
+@@ -1084,9 +1125,14 @@ mod tests {
              bank.process_transaction(&fund_tx).unwrap();
              //receive entries + ticks
              loop {
@@ -5479,7 +5501,7 @@ index 1bdd7defee..607b7ee10d 100644
                      .collect();
  
                  assert!(entries.verify(&blockhash, &entry::thread_pool_for_tests()));
-@@ -1197,6 +1243,8 @@ mod tests {
+@@ -1203,6 +1249,8 @@ mod tests {
                      Arc::new(ConnectionCache::new("connection_cache_test")),
                      bank_forks,
                      &Arc::new(PrioritizationFeeCache::new(0u64)),
@@ -5488,7 +5510,7 @@ index 1bdd7defee..607b7ee10d 100644
                  );
  
                  // wait for banking_stage to eat the packets
-@@ -1215,7 +1263,12 @@ mod tests {
+@@ -1221,7 +1269,12 @@ mod tests {
              // check that the balance is what we expect.
              let entries: Vec<_> = entry_receiver
                  .iter()
@@ -5502,7 +5524,7 @@ index 1bdd7defee..607b7ee10d 100644
                  .collect();
  
              let (bank, _bank_forks) = Bank::new_no_wallclock_throttle_for_tests(&genesis_config);
-@@ -1278,15 +1331,19 @@ mod tests {
+@@ -1284,15 +1337,19 @@ mod tests {
                  system_transaction::transfer(&keypair2, &pubkey2, 1, genesis_config.hash()).into(),
              ];
  
@@ -5525,7 +5547,7 @@ index 1bdd7defee..607b7ee10d 100644
              assert_matches!(result, Err(PohRecorderError::MaxHeightReached));
              // Should receive nothing from PohRecorder b/c record failed
              assert!(entry_receiver.try_recv().is_err());
-@@ -1389,6 +1446,8 @@ mod tests {
+@@ -1395,6 +1452,8 @@ mod tests {
                  bank_forks,
                  &Arc::new(PrioritizationFeeCache::new(0u64)),
                  false,
@@ -6063,10 +6085,10 @@ index 3493a5f3a8..9e74ebb4dd 100644
          assert_eq!(expected_units, units);
          assert_eq!(expected_us, us);
 diff --git a/core/src/banking_stage/latest_unprocessed_votes.rs b/core/src/banking_stage/latest_unprocessed_votes.rs
-index 6e9f20441d..8f6ce22800 100644
+index fc6036bee6..018fd9ef41 100644
 --- a/core/src/banking_stage/latest_unprocessed_votes.rs
 +++ b/core/src/banking_stage/latest_unprocessed_votes.rs
-@@ -140,7 +140,7 @@ pub(crate) fn weighted_random_order_by_stake<'a>(
+@@ -134,7 +134,7 @@ impl LatestValidatorVotePacket {
  }
  
  #[derive(Default, Debug)]
@@ -6198,7 +6220,7 @@ index bf8b7df963..ecc1d8c4b6 100644
                  total_txs_cost,
                  bank.read_cost_tracker().unwrap().block_cost()
 diff --git a/core/src/banking_stage/unprocessed_transaction_storage.rs b/core/src/banking_stage/unprocessed_transaction_storage.rs
-index 7a529bd457..aeb78148c4 100644
+index 7c019993ae..9ef764c53a 100644
 --- a/core/src/banking_stage/unprocessed_transaction_storage.rs
 +++ b/core/src/banking_stage/unprocessed_transaction_storage.rs
 @@ -15,18 +15,29 @@ use {
@@ -6211,7 +6233,7 @@ index 7a529bd457..aeb78148c4 100644
 +    },
      itertools::Itertools,
      min_max_heap::MinMaxHeap,
-+    solana_bundle::BundleExecutionError,
++    solana_bundle::{bundle_execution::LoadAndExecuteBundleError, BundleExecutionError},
      solana_measure::{measure, measure_us},
      solana_runtime::bank::Bank,
      solana_sdk::{
@@ -6394,7 +6416,7 @@ index 7a529bd457..aeb78148c4 100644
      ) -> bool
      where
          F: FnMut(
-@@ -403,15 +467,62 @@ impl UnprocessedTransactionStorage {
+@@ -403,19 +467,67 @@ impl UnprocessedTransactionStorage {
                      banking_stage_stats,
                      slot_metrics_tracker,
                      processing_function,
@@ -6412,7 +6434,7 @@ index 7a529bd457..aeb78148c4 100644
              ),
          }
      }
-+
+ 
 +    #[must_use]
 +    pub fn process_bundles<F>(
 +        &mut self,
@@ -6454,10 +6476,15 @@ index 7a529bd457..aeb78148c4 100644
 +            }
 +        }
 +    }
- }
- 
- impl VoteStorage {
-@@ -480,6 +591,7 @@ impl VoteStorage {
++
+     pub(crate) fn cache_epoch_boundary_info(&mut self, bank: &Bank) {
+         match self {
+             Self::LocalTransactionStorage(_) => (),
++            UnprocessedTransactionStorage::BundleStorage(_) => (),
+             Self::VoteStorage(vote_storage) => vote_storage.cache_epoch_boundary_info(bank),
+         }
+     }
+@@ -489,6 +601,7 @@ impl VoteStorage {
          banking_stage_stats: &BankingStageStats,
          slot_metrics_tracker: &mut LeaderSlotMetricsTracker,
          mut processing_function: F,
@@ -6465,7 +6492,7 @@ index 7a529bd457..aeb78148c4 100644
      ) -> bool
      where
          F: FnMut(
-@@ -493,7 +605,13 @@ impl VoteStorage {
+@@ -502,7 +615,13 @@ impl VoteStorage {
  
          let should_process_packet =
              |packet: &Arc<ImmutableDeserializedPacket>, payload: &mut ConsumeScannerPayload| {
@@ -6480,7 +6507,7 @@ index 7a529bd457..aeb78148c4 100644
              };
  
          // Based on the stake distribution present in the supplied bank, drain the unprocessed votes
-@@ -579,6 +697,7 @@ impl ThreadLocalUnprocessedPackets {
+@@ -606,6 +725,7 @@ impl ThreadLocalUnprocessedPackets {
              ThreadType::Transactions => ForwardOption::ForwardTransaction,
              ThreadType::Voting(VoteSource::Tpu) => ForwardOption::ForwardTpuVote,
              ThreadType::Voting(VoteSource::Gossip) => ForwardOption::NotForward,
@@ -6488,7 +6515,7 @@ index 7a529bd457..aeb78148c4 100644
          }
      }
  
-@@ -904,6 +1023,7 @@ impl ThreadLocalUnprocessedPackets {
+@@ -931,6 +1051,7 @@ impl ThreadLocalUnprocessedPackets {
          banking_stage_stats: &BankingStageStats,
          slot_metrics_tracker: &mut LeaderSlotMetricsTracker,
          mut processing_function: F,
@@ -6496,7 +6523,7 @@ index 7a529bd457..aeb78148c4 100644
      ) -> bool
      where
          F: FnMut(
-@@ -918,7 +1038,13 @@ impl ThreadLocalUnprocessedPackets {
+@@ -945,7 +1066,13 @@ impl ThreadLocalUnprocessedPackets {
  
          let should_process_packet =
              |packet: &Arc<ImmutableDeserializedPacket>, payload: &mut ConsumeScannerPayload| {
@@ -6511,7 +6538,7 @@ index 7a529bd457..aeb78148c4 100644
              };
          let mut scanner = create_consume_multi_iterator(
              &all_packets_to_process,
-@@ -995,6 +1121,319 @@ impl ThreadLocalUnprocessedPackets {
+@@ -1022,6 +1149,333 @@ impl ThreadLocalUnprocessedPackets {
      }
  }
  
@@ -6711,17 +6738,31 @@ index 7a529bd457..aeb78148c4 100644
 +                        rebuffered_bundles.push(deserialized_bundle);
 +                        is_slot_over = true;
 +                    }
++                    Err(BundleExecutionError::ExceedsCostModel) => {
++                        // cost model buffered bundles contain most recent bundles at the front of the queue
++                        debug!(
++                            "bundle={} exceeds cost model, rebuffering",
++                            sanitized_bundle.bundle_id
++                        );
++                        self.push_back_cost_model_buffered_bundles(vec![deserialized_bundle]);
++                    }
++                    Err(BundleExecutionError::TransactionFailure(
++                        LoadAndExecuteBundleError::ProcessingTimeExceeded(_),
++                    )) => {
++                        // these are treated the same as exceeds cost model and are rebuferred to be completed
++                        // at the beginning of the next slot
++                        debug!(
++                            "bundle={} processing time exceeded, rebuffering",
++                            sanitized_bundle.bundle_id
++                        );
++                        self.push_back_cost_model_buffered_bundles(vec![deserialized_bundle]);
++                    }
 +                    Err(BundleExecutionError::TransactionFailure(e)) => {
 +                        debug!(
 +                            "bundle={} execution error: {:?}",
 +                            sanitized_bundle.bundle_id, e
 +                        );
 +                        // do nothing
-+                    }
-+                    Err(BundleExecutionError::ExceedsCostModel) => {
-+                        // cost model buffered bundles contain most recent bundles at the front of the queue
-+                        debug!("bundle={} exceeds cost model", sanitized_bundle.bundle_id);
-+                        self.push_back_cost_model_buffered_bundles(vec![deserialized_bundle]);
 +                    }
 +                    Err(BundleExecutionError::TipError(e)) => {
 +                        debug!("bundle={} tip error: {}", sanitized_bundle.bundle_id, e);
@@ -6831,7 +6872,7 @@ index 7a529bd457..aeb78148c4 100644
  #[cfg(test)]
  mod tests {
      use {
-@@ -1315,6 +1754,7 @@ mod tests {
+@@ -1351,6 +1805,7 @@ mod tests {
                          .collect_vec(),
                  )
              },
@@ -6853,7 +6894,7 @@ index c2b3c38695..96358b245f 100644
      sender: Sender<BankingPacketBatch>,
 diff --git a/core/src/bundle_stage.rs b/core/src/bundle_stage.rs
 new file mode 100644
-index 0000000000..e935529df5
+index 0000000000..a5bb2ec515
 --- /dev/null
 +++ b/core/src/bundle_stage.rs
 @@ -0,0 +1,434 @@
@@ -6905,7 +6946,7 @@ index 0000000000..e935529df5
 +pub(crate) mod bundle_stage_leader_metrics;
 +mod committer;
 +
-+const MAX_BUNDLE_RETRY_DURATION: Duration = Duration::from_millis(10);
++const MAX_BUNDLE_RETRY_DURATION: Duration = Duration::from_millis(40);
 +const SLOT_BOUNDARY_CHECK_PERIOD: Duration = Duration::from_millis(10);
 +
 +// Stats emitted periodically
@@ -11909,7 +11950,7 @@ index 0000000000..aa1c395f24
 +    }
 +}
 diff --git a/core/src/lib.rs b/core/src/lib.rs
-index c6ab7b7e9c..5c4aa86523 100644
+index c6ab7b7e9c..9d6908b317 100644
 --- a/core/src/lib.rs
 +++ b/core/src/lib.rs
 @@ -12,20 +12,25 @@ pub mod accounts_hash_verifier;
@@ -11946,7 +11987,7 @@ index c6ab7b7e9c..5c4aa86523 100644
  pub mod tpu;
  mod tpu_entry_notifier;
  pub mod tracer_packet_stats;
-@@ -66,3 +72,41 @@ extern crate solana_frozen_abi_macro;
+@@ -66,3 +72,47 @@ extern crate solana_frozen_abi_macro;
  #[cfg(test)]
  #[macro_use]
  extern crate assert_matches;
@@ -11983,6 +12024,12 @@ index c6ab7b7e9c..5c4aa86523 100644
 +            }
 +            if flags.repair {
 +                packet.meta_mut().flags.insert(PacketFlags::REPAIR);
++            }
++            if flags.from_staked_node {
++                packet
++                    .meta_mut()
++                    .flags
++                    .insert(PacketFlags::FROM_STAKED_NODE)
 +            }
 +        }
 +    }
@@ -14872,7 +14919,7 @@ index 4268e48260..ec302c4ca0 100644
              {
                  assert!(
 diff --git a/cost-model/src/cost_tracker.rs b/cost-model/src/cost_tracker.rs
-index 0c731f946e..e0487ace86 100644
+index 32bda6f105..e94ca49ea2 100644
 --- a/cost-model/src/cost_tracker.rs
 +++ b/cost-model/src/cost_tracker.rs
 @@ -130,6 +130,10 @@ impl CostTracker {
@@ -14922,7 +14969,7 @@ index 0000000000..cbdf837e92
 +RUST_INFO=trace ./target/release/solana deploy --keypair $WALLET_LOCATION -ul ./jito-programs/tip-payment/target/deploy/tip_payment.so  ./jito-programs/tip-payment/dev/dev_tip_payment.json
 diff --git a/dev/Dockerfile b/dev/Dockerfile
 new file mode 100644
-index 0000000000..bab9a1c02f
+index 0000000000..012ca45974
 --- /dev/null
 +++ b/dev/Dockerfile
 @@ -0,0 +1,48 @@
@@ -14970,9 +15017,9 @@ index 0000000000..bab9a1c02f
 +    --mount=type=cache,mode=0777,target=/usr/local/cargo/registry \
 +    --mount=type=cache,mode=0777,target=/usr/local/cargo/git \
 +    if [ "$debug" = "false" ] ; then \
-+      ./cargo stable build --release && cp target/release/solana* ./docker-output; \
++      ./cargo stable build --release && cp target/release/solana* ./docker-output && cp target/release/agave* ./docker-output; \
 +    else \
-+      RUSTFLAGS='-g -C force-frame-pointers=yes' ./cargo stable build --release && cp target/release/solana* ./docker-output; \
++      RUSTFLAGS='-g -C force-frame-pointers=yes' ./cargo stable build --release && cp target/release/solana* ./docker-output && cp target/release/agave* ./docker-output; \
 +    fi
 diff --git a/docs/src/cli/install.md b/docs/src/cli/install.md
 index c9a5c682d4..d4be9638a4 100644
@@ -15366,7 +15413,7 @@ index 97fb1c50aa..97de447388 100755
  echo "solana-genesis command-line arguments (spl-genesis-args.sh):"
  cat spl-genesis-args.sh
 diff --git a/gossip/src/cluster_info.rs b/gossip/src/cluster_info.rs
-index 7c1dd11dd3..85d8cf63ed 100644
+index c50f4ff760..1446b34e3c 100644
 --- a/gossip/src/cluster_info.rs
 +++ b/gossip/src/cluster_info.rs
 @@ -572,6 +572,10 @@ impl ClusterInfo {
@@ -21436,7 +21483,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index 8868281b8d..ca7924ddd7 100644
+index 6b30280bbe..4e423c8ec4 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -123,6 +123,7 @@ dependencies = [
@@ -21940,7 +21987,7 @@ index 8868281b8d..ca7924ddd7 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.11"
++version = "2.0.13"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -22261,7 +22308,7 @@ index 8868281b8d..ca7924ddd7 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.11"
++version = "2.0.13"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -22282,9 +22329,9 @@ index 8868281b8d..ca7924ddd7 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.0.11"
+ version = "2.0.13"
 @@ -4832,9 +5111,10 @@ name = "solana-core"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -22339,7 +22386,7 @@ index 8868281b8d..ca7924ddd7 100644
  ]
  
 @@ -5005,7 +5294,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -22356,7 +22403,7 @@ index 8868281b8d..ca7924ddd7 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -5454,7 +5743,7 @@ version = "2.0.11"
+@@ -5454,7 +5743,7 @@ version = "2.0.13"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -22390,7 +22437,7 @@ index 8868281b8d..ca7924ddd7 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -5536,7 +5827,7 @@ version = "2.0.11"
+@@ -5536,7 +5827,7 @@ version = "2.0.13"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -22416,7 +22463,7 @@ index 8868281b8d..ca7924ddd7 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.11"
++version = "2.0.13"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -22434,10 +22481,10 @@ index 8868281b8d..ca7924ddd7 100644
 +
  [[package]]
  name = "solana-sbf-programs"
- version = "2.0.11"
+ version = "2.0.13"
 @@ -6102,10 +6413,12 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
 + "anchor-lang",
 + "base64 0.22.1",
@@ -22451,7 +22498,7 @@ index 8868281b8d..ca7924ddd7 100644
   "byteorder 1.5.0",
 @@ -6150,9 +6463,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -22471,7 +22518,7 @@ index 8868281b8d..ca7924ddd7 100644
   "solana-metrics",
   "solana-runtime",
 @@ -6229,7 +6543,7 @@ name = "solana-storage-proto"
- version = "2.0.11"
+ version = "2.0.13"
  dependencies = [
   "bincode",
 - "bs58",
@@ -24691,7 +24738,7 @@ index 0000000000..5fcb625a26
 +    }
 +}
 diff --git a/runtime/src/bank.rs b/runtime/src/bank.rs
-index 4efac31940..ad763a1288 100644
+index e00bf939a3..5113ece1fb 100644
 --- a/runtime/src/bank.rs
 +++ b/runtime/src/bank.rs
 @@ -67,7 +67,7 @@ use {
@@ -29431,7 +29478,7 @@ index e9ed6a1a6e..c0fa09ce7d 100644
      }
      fn record(&mut self, receiver: &RecordReceiver, blockstore: &Blockstore) -> Result<()> {
 diff --git a/turbine/src/broadcast_stage/standard_broadcast_run.rs b/turbine/src/broadcast_stage/standard_broadcast_run.rs
-index 1d34ccb31c..a65119df04 100644
+index 814fed7dee..dc6865081f 100644
 --- a/turbine/src/broadcast_stage/standard_broadcast_run.rs
 +++ b/turbine/src/broadcast_stage/standard_broadcast_run.rs
 @@ -17,7 +17,7 @@ use {
