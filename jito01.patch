@@ -1,4 +1,4 @@
-From dc3f445048fdde003312b286fb6fc8f3912ec470 Mon Sep 17 00:00:00 2001
+From ffc00548d845369e32a4f7f4c1420b801c44a560 Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Thu, 25 Aug 2022 17:18:46 -0500
 Subject: [PATCH] jito patch only reroute if relayer connected (#123) feat: add
@@ -584,7 +584,7 @@ index ffd8ec2103..3da79c6e91 100644
        shell: bash
        env:
 diff --git a/.github/workflows/client-targets.yml b/.github/workflows/client-targets.yml
-index 1a33d2ae59..4d32555954 100644
+index 6ee8257510..655c24b30c 100644
 --- a/.github/workflows/client-targets.yml
 +++ b/.github/workflows/client-targets.yml
 @@ -32,6 +32,8 @@ jobs:
@@ -988,11 +988,11 @@ index 0000000000..e31fc7fccd
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index 71562746bd..a14043f800 100644
+index 3f77b6a525..61d01e207b 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -154,7 +154,7 @@ name = "agave-ledger-tool"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
   "assert_cmd",
 - "bs58",
@@ -1652,7 +1652,7 @@ index 71562746bd..a14043f800 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.14"
++version = "2.0.15"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -1984,7 +1984,7 @@ index 71562746bd..a14043f800 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.14"
++version = "2.0.15"
 +dependencies = [
 + "anchor-lang",
 + "assert_matches",
@@ -2006,8 +2006,8 @@ index 71562746bd..a14043f800 100644
 +
  [[package]]
  name = "solana-cargo-build-bpf"
- version = "2.0.14"
-@@ -5846,7 +6191,7 @@ version = "2.0.14"
+ version = "2.0.15"
+@@ -5846,7 +6191,7 @@ version = "2.0.15"
  dependencies = [
   "assert_matches",
   "bincode",
@@ -2017,7 +2017,7 @@ index 71562746bd..a14043f800 100644
   "console",
   "const_format",
 @@ -6060,10 +6405,11 @@ name = "solana-core"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -2079,7 +2079,7 @@ index 71562746bd..a14043f800 100644
  ]
  
 @@ -6286,7 +6642,7 @@ name = "solana-frozen-abi"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
   "bitflags 2.5.0",
 - "bs58",
@@ -2089,7 +2089,7 @@ index 71562746bd..a14043f800 100644
   "im",
 @@ -6306,8 +6662,8 @@ dependencies = [
  name = "solana-frozen-abi-macro"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2099,7 +2099,7 @@ index 71562746bd..a14043f800 100644
   "syn 2.0.66",
  ]
 @@ -6353,7 +6709,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -2109,7 +2109,7 @@ index 71562746bd..a14043f800 100644
   "jsonrpc-core",
 @@ -6437,7 +6793,7 @@ dependencies = [
  name = "solana-keygen"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2127,7 +2127,7 @@ index 71562746bd..a14043f800 100644
   "chrono-humanize",
 @@ -6702,8 +7058,8 @@ dependencies = [
  name = "solana-package-metadata-macro"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2145,7 +2145,7 @@ index 71562746bd..a14043f800 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -6989,7 +7345,7 @@ version = "2.0.14"
+@@ -6989,7 +7345,7 @@ version = "2.0.15"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2179,7 +2179,7 @@ index 71562746bd..a14043f800 100644
   "crossbeam-channel",
   "futures 0.3.30",
   "indicatif",
-@@ -7080,7 +7438,7 @@ version = "2.0.14"
+@@ -7080,7 +7438,7 @@ version = "2.0.15"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -2200,7 +2200,7 @@ index 71562746bd..a14043f800 100644
   "solana-version",
   "thiserror",
 @@ -7119,13 +7479,14 @@ name = "solana-rpc-test"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2221,7 +2221,7 @@ index 71562746bd..a14043f800 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.14"
++version = "2.0.15"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -2239,10 +2239,10 @@ index 71562746bd..a14043f800 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.0.14"
+ version = "2.0.15"
 @@ -7247,12 +7626,14 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
 + "anchor-lang",
   "anyhow",
@@ -2258,7 +2258,7 @@ index 71562746bd..a14043f800 100644
   "byteorder",
 @@ -7305,9 +7686,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -2284,7 +2284,7 @@ index 71562746bd..a14043f800 100644
  ]
  
 @@ -7419,7 +7802,7 @@ name = "solana-storage-proto"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2298,7 +2298,7 @@ index 71562746bd..a14043f800 100644
  
 +[[package]]
 +name = "solana-tip-distributor"
-+version = "2.0.14"
++version = "2.0.15"
 +dependencies = [
 + "anchor-lang",
 + "clap 4.3.21",
@@ -2336,7 +2336,7 @@ index 71562746bd..a14043f800 100644
 +
  [[package]]
  name = "solana-tokens"
- version = "2.0.14"
+ version = "2.0.15"
 @@ -7685,7 +8106,7 @@ dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2348,7 +2348,7 @@ index 71562746bd..a14043f800 100644
   "serde",
 @@ -7900,7 +8321,7 @@ dependencies = [
  name = "solana-zk-keygen"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2686,7 +2686,7 @@ index 71562746bd..a14043f800 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index 0a13c2c335..ba8b80cba4 100644
+index 8a9f977ef0..bf7ff9800b 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -19,6 +19,7 @@ members = [
@@ -2747,7 +2747,7 @@ index 0a13c2c335..ba8b80cba4 100644
      "unprefixed_malloc_on_supported_platforms",
  ] }
  js-sys = "0.3.69"
-+jito-protos = { path = "jito-protos", version = "=2.0.14" }
++jito-protos = { path = "jito-protos", version = "=2.0.15" }
 +jito-tip-distribution = { path = "jito-programs/mev-programs/programs/tip-distribution", features = ["no-entrypoint"] }
 +jito-tip-payment = { path = "jito-programs/mev-programs/programs/tip-payment", features = ["no-entrypoint"] }
  json5 = "0.4.1"
@@ -2761,22 +2761,22 @@ index 0a13c2c335..ba8b80cba4 100644
  lazy-lru = "0.1.2"
  lazy_static = "1.4.0"
  libc = "0.2.155"
-@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.14" }
- solana-bloom = { path = "bloom", version = "=2.0.14" }
- solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.14" }
- solana-bucket-map = { path = "bucket_map", version = "=2.0.14" }
-+solana-bundle = { path = "bundle", version = "=2.0.14" }
- agave-cargo-registry = { path = "cargo-registry", version = "=2.0.14" }
- solana-clap-utils = { path = "clap-utils", version = "=2.0.14" }
- solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.14" }
-@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.14", default-features
- solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.14" }
- solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.14" }
- solana-runtime = { path = "runtime", version = "=2.0.14" }
-+solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.14" }
- solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.14" }
- solana-sdk = { path = "sdk", version = "=2.0.14" }
- solana-sdk-macro = { path = "sdk/macro", version = "=2.0.14" }
+@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.15" }
+ solana-bloom = { path = "bloom", version = "=2.0.15" }
+ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.15" }
+ solana-bucket-map = { path = "bucket_map", version = "=2.0.15" }
++solana-bundle = { path = "bundle", version = "=2.0.15" }
+ agave-cargo-registry = { path = "cargo-registry", version = "=2.0.15" }
+ solana-clap-utils = { path = "clap-utils", version = "=2.0.15" }
+ solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.15" }
+@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.15", default-features
+ solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.15" }
+ solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.15" }
+ solana-runtime = { path = "runtime", version = "=2.0.15" }
++solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.15" }
+ solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.15" }
+ solana-sdk = { path = "sdk", version = "=2.0.15" }
+ solana-sdk-macro = { path = "sdk/macro", version = "=2.0.15" }
 diff --git a/README.md b/README.md
 index 0d855e8cc8..4369c4bcb4 100644
 --- a/README.md
@@ -5607,7 +5607,7 @@ index 0ca1304a45..63f6921024 100644
              let batch_transaction_indexes: Vec<_> = tx_results
                  .execution_results
 diff --git a/core/src/banking_stage/consume_worker.rs b/core/src/banking_stage/consume_worker.rs
-index 7e1449c5c7..4796381474 100644
+index b2428cfe4c..03444df799 100644
 --- a/core/src/banking_stage/consume_worker.rs
 +++ b/core/src/banking_stage/consume_worker.rs
 @@ -697,11 +697,14 @@ impl ConsumeWorkerTransactionErrorMetrics {
@@ -5630,7 +5630,7 @@ index 7e1449c5c7..4796381474 100644
          },
          crossbeam_channel::unbounded,
          solana_ledger::{
-@@ -788,7 +791,14 @@ mod tests {
+@@ -793,7 +796,14 @@ mod tests {
              replay_vote_sender,
              Arc::new(PrioritizationFeeCache::new(0u64)),
          );
@@ -5647,7 +5647,7 @@ index 7e1449c5c7..4796381474 100644
          let (consume_sender, consume_receiver) = unbounded();
          let (consumed_sender, consumed_receiver) = unbounded();
 diff --git a/core/src/banking_stage/consumer.rs b/core/src/banking_stage/consumer.rs
-index 4798991e9f..d462b106d4 100644
+index e87b6374b9..1f7b3dee00 100644
 --- a/core/src/banking_stage/consumer.rs
 +++ b/core/src/banking_stage/consumer.rs
 @@ -1,6 +1,6 @@
@@ -21482,7 +21482,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index 603ba82d7c..b92764658f 100644
+index d9265da8c8..c4455a7258 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -123,6 +123,7 @@ dependencies = [
@@ -21986,7 +21986,7 @@ index 603ba82d7c..b92764658f 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.14"
++version = "2.0.15"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -22307,7 +22307,7 @@ index 603ba82d7c..b92764658f 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.14"
++version = "2.0.15"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -22328,9 +22328,9 @@ index 603ba82d7c..b92764658f 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.0.14"
+ version = "2.0.15"
 @@ -4832,9 +5111,10 @@ name = "solana-core"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -22385,7 +22385,7 @@ index 603ba82d7c..b92764658f 100644
  ]
  
 @@ -5005,7 +5294,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -22402,7 +22402,7 @@ index 603ba82d7c..b92764658f 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -5454,7 +5743,7 @@ version = "2.0.14"
+@@ -5454,7 +5743,7 @@ version = "2.0.15"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -22436,7 +22436,7 @@ index 603ba82d7c..b92764658f 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -5536,7 +5827,7 @@ version = "2.0.14"
+@@ -5536,7 +5827,7 @@ version = "2.0.15"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -22462,7 +22462,7 @@ index 603ba82d7c..b92764658f 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.14"
++version = "2.0.15"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -22480,10 +22480,10 @@ index 603ba82d7c..b92764658f 100644
 +
  [[package]]
  name = "solana-sbf-programs"
- version = "2.0.14"
+ version = "2.0.15"
 @@ -6102,10 +6413,12 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
 + "anchor-lang",
 + "base64 0.22.1",
@@ -22497,7 +22497,7 @@ index 603ba82d7c..b92764658f 100644
   "byteorder 1.5.0",
 @@ -6150,9 +6463,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -22517,7 +22517,7 @@ index 603ba82d7c..b92764658f 100644
   "solana-metrics",
   "solana-runtime",
 @@ -6229,7 +6543,7 @@ name = "solana-storage-proto"
- version = "2.0.14"
+ version = "2.0.15"
  dependencies = [
   "bincode",
 - "bs58",
@@ -24737,7 +24737,7 @@ index 0000000000..5fcb625a26
 +    }
 +}
 diff --git a/runtime/src/bank.rs b/runtime/src/bank.rs
-index e00bf939a3..5113ece1fb 100644
+index 5d5b54eb38..2acedc7936 100644
 --- a/runtime/src/bank.rs
 +++ b/runtime/src/bank.rs
 @@ -67,7 +67,7 @@ use {
@@ -25567,7 +25567,7 @@ index 0000000000..66de0032dc
 +cargo run --bin solana-ledger-tool -- -l config/bootstrap-validator/ create-snapshot 0
 +NDEBUG=1 ./multinode-demo/faucet.sh
 diff --git a/svm/src/account_loader.rs b/svm/src/account_loader.rs
-index c62963c09e..4cf6c882d3 100644
+index f11fc00287..8c58736aa0 100644
 --- a/svm/src/account_loader.rs
 +++ b/svm/src/account_loader.rs
 @@ -6,6 +6,7 @@ use {
@@ -25578,7 +25578,7 @@ index c62963c09e..4cf6c882d3 100644
      solana_compute_budget::compute_budget_processor::{
          process_compute_budget_instructions, ComputeBudgetLimits,
      },
-@@ -235,6 +236,10 @@ fn load_transaction_accounts<CB: TransactionProcessingCallback>(
+@@ -240,6 +241,10 @@ fn load_transaction_accounts<CB: TransactionProcessingCallback>(
                  } else if let Some(account_override) =
                      account_overrides.and_then(|overrides| overrides.get(key))
                  {
@@ -25587,8 +25587,8 @@ index c62963c09e..4cf6c882d3 100644
 +                        key, account_override
 +                    );
                      (account_override.data().len(), account_override.clone(), 0)
-                 } else if let Some(program) = (!instruction_account && !message.is_writable(i))
-                     .then_some(())
+                 } else if let Some(program) = (!disable_account_loader_special_case
+                     && !instruction_account
 diff --git a/svm/src/account_overrides.rs b/svm/src/account_overrides.rs
 index 8a205a798f..b92ba7d0ad 100644
 --- a/svm/src/account_overrides.rs
@@ -25612,10 +25612,10 @@ index 8a205a798f..b92ba7d0ad 100644
      pub fn set_account(&mut self, pubkey: &Pubkey, account: Option<AccountSharedData>) {
          match account {
 diff --git a/svm/src/transaction_processor.rs b/svm/src/transaction_processor.rs
-index edcba870c6..feb37beeb0 100644
+index 309b7927b4..e122a299f7 100644
 --- a/svm/src/transaction_processor.rs
 +++ b/svm/src/transaction_processor.rs
-@@ -245,7 +245,7 @@ impl<FG: ForkGraph> TransactionBatchProcessor<FG> {
+@@ -246,7 +246,7 @@ impl<FG: ForkGraph> TransactionBatchProcessor<FG> {
              environment
                  .rent_collector
                  .unwrap_or(&RentCollector::default()),
@@ -29477,7 +29477,7 @@ index e9ed6a1a6e..c0fa09ce7d 100644
      }
      fn record(&mut self, receiver: &RecordReceiver, blockstore: &Blockstore) -> Result<()> {
 diff --git a/turbine/src/broadcast_stage/standard_broadcast_run.rs b/turbine/src/broadcast_stage/standard_broadcast_run.rs
-index 14e213b2e2..e63e33c3fd 100644
+index 814fed7dee..dc6865081f 100644
 --- a/turbine/src/broadcast_stage/standard_broadcast_run.rs
 +++ b/turbine/src/broadcast_stage/standard_broadcast_run.rs
 @@ -17,7 +17,7 @@ use {
