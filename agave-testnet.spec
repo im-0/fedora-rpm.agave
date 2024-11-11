@@ -226,6 +226,10 @@ cp %{SOURCE102} .cargo/config.toml
 #     *** ERROR: ./usr/src/debug/agave-testnet-1.10.0-1.fc35.x86_64/vendor/ascii/src/ascii_char.rs has shebang which doesn't start with '/' ([cfg_attr(rustfmt, rustfmt_skip)])
 find . -type f -name "*.rs" -exec chmod 0644 "{}" ";"
 
+echo "[profile.release-lto]" >>Cargo.toml
+echo "inherits = \"release\"" >>Cargo.toml
+echo "lto = \"fat\"" >>Cargo.toml
+
 
 %build
 export PATH="$( pwd )/../rust/bin:${PATH}"
@@ -259,18 +263,13 @@ export CXXFLAGS="-O3 %{cpu_base_cflags}"
 export LDFLAGS="-O3 %{cpu_base_cflags}"
 cargo build %{__cargo_common_opts} --release --frozen
 
-mv target/release ./_release
-cargo clean
-
 %ifarch x86_64
 # Second, build binaries optimized for newer CPUs with "fat" LTO.
-echo "[profile.release]" >>Cargo.toml
-echo "lto = \"fat\"" >>Cargo.toml
 export RUSTFLAGS='%{build_rustflags} -Ccodegen-units=1 -Copt-level=3 %{cpu_validator_rustflags}'
 export CFLAGS="-O3 %{cpu_validator_cflags}"
 export CXXFLAGS="-O3 %{cpu_validator_cflags}"
 export LDFLAGS="-O3 %{cpu_validator_cflags}"
-cargo build %{__cargo_common_opts} --release --frozen \
+cargo build %{__cargo_common_opts} --profile release-lto --frozen \
         --package agave-validator \
         --package solana-accounts-bench \
         --package solana-banking-bench \
@@ -278,9 +277,6 @@ cargo build %{__cargo_common_opts} --release --frozen \
         --package solana-merkle-root-bench \
         --package solana-poh-bench \
         --package solana-program:%{version}
-
-mv target/release ./_release.optimized
-cargo clean
 %endif
 
 sed 's,__SUFFIX__,%{agave_suffix},g' \
@@ -302,7 +298,7 @@ sed 's,__SUFFIX__,%{agave_suffix},g' \
         <%{SOURCE109} \
         >agave-validator.logrotate
 
-./_release/solana completion --shell bash >solana.bash-completion
+./target/release/solana completion --shell bash >solana.bash-completion
 
 
 %install
@@ -328,41 +324,45 @@ mv agave-watchtower \
 mv agave-validator.logrotate \
         %{buildroot}%{_sysconfdir}/logrotate.d/agave-validator-%{agave_suffix}
 
-%ifarch x86_64
-# Use binaries optimized for newer CPUs for running validator and local benchmarks.
-mv _release.optimized/*.so ./_release/
-mv _release.optimized/agave-validator ./_release/
-mv _release.optimized/solana-accounts-bench ./_release/
-mv _release.optimized/solana-banking-bench ./_release/
-mv _release.optimized/solana-bench-streamer ./_release/
-mv _release.optimized/solana-merkle-root-bench ./_release/
-mv _release.optimized/solana-poh-bench ./_release/
-mv _release.optimized/solana-test-validator ./_release/
-%endif
-
-find ./_release/ -mindepth 1 -maxdepth 1 -type d -exec rm -r "{}" \;
-rm ./_release/*.d
-rm ./_release/*.rlib
+find ./target/release/ -mindepth 1 -maxdepth 1 -type d -exec rm -r "{}" \;
+rm ./target/release/*.d
+rm ./target/release/*.rlib
 # Excluded because we do not need installers.
-rm ./_release/agave-install ./_release/agave-install-init ./_release/solana-ledger-udev
+rm \
+        ./target/release/agave-install \
+        ./target/release/agave-install-init \
+        ./target/release/solana-ledger-udev
 # Excluded. 
 # TODO: Why? Official binary release does not contain these, only libagave_*_program.so installed.
 rm \
-        ./_release/libsolana_frozen_abi_macro.so \
-        ./_release/libsolana_package_metadata_macro.so \
-        ./_release/libsolana_sdk_macro.so \
-        ./_release/libsolana_sdk.so \
-        ./_release/libsolana_zk_sdk.so \
-        ./_release/libsolana_zk_token_sdk.so
-rm ./_release/gen-syscall-list
-rm ./_release/gen-headers
-rm ./_release/proto
-rm ./_release/agave-cargo-registry
+        ./target/release/libsolana_frozen_abi_macro.so \
+        ./target/release/libsolana_package_metadata_macro.so \
+        ./target/release/libsolana_sdk_macro.so \
+        ./target/release/libsolana_sdk.so \
+        ./target/release/libsolana_zk_sdk.so \
+        ./target/release/libsolana_zk_token_sdk.so
+rm ./target/release/gen-syscall-list
+rm ./target/release/gen-headers
+rm ./target/release/proto
+rm ./target/release/agave-cargo-registry
 
-mv ./_release/*.so \
+mv ./target/release/*.so \
         %{buildroot}/opt/agave/%{agave_suffix}/bin/deps/
-mv ./_release/* \
+mv ./target/release/* \
         %{buildroot}/opt/agave/%{agave_suffix}/bin/
+
+%ifarch x86_64
+# Use binaries optimized for newer CPUs for running validator and local benchmarks.
+mv -f target/release-lto/*.so \
+         %{buildroot}/opt/agave/%{agave_suffix}/bin/deps/
+mv -f target/release-lto/agave-validator %{buildroot}/opt/agave/%{agave_suffix}/bin/
+mv -f target/release-lto/solana-accounts-bench %{buildroot}/opt/agave/%{agave_suffix}/bin/
+mv -f target/release-lto/solana-banking-bench %{buildroot}/opt/agave/%{agave_suffix}/bin/
+mv -f target/release-lto/solana-bench-streamer %{buildroot}/opt/agave/%{agave_suffix}/bin/
+mv -f target/release-lto/solana-merkle-root-bench %{buildroot}/opt/agave/%{agave_suffix}/bin/
+mv -f target/release-lto/solana-poh-bench %{buildroot}/opt/agave/%{agave_suffix}/bin/
+mv -f target/release-lto/solana-test-validator %{buildroot}/opt/agave/%{agave_suffix}/bin/
+%endif
 
 mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash-completion
 
