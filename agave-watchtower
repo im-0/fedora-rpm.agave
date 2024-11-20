@@ -13,5 +13,5 @@ RUST_LOG="info"
 # Command line options for agave-watchtower.
 SERVICE_OPTS="
     --config /etc/agave/__SUFFIX__/cli-config.yml
-    --url https://api.testnet.solana.com
+    --url https://api.mainnet-beta.solana.com
 "

@@ -1,4 +1,4 @@
-%global agave_suffix testnet
+%global agave_suffix mainnet
 %global agave_crossbeam_commit fd279d707025f0e60951e429bf778b4813d1b6bf
 %global agave_tokio_commit 7cf47705faacf7bf0e43e4131a5377b3291fce21
 %global agave_curve25519_dalek_commit b500cdc2a920cd5bff9e2dd974d7b97349d61464
