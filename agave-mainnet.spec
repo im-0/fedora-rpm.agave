@@ -27,7 +27,7 @@
 Name:       agave-%{agave_suffix}
 # git f5a88ce9045ce204bb4c7495d597d2417ee861c2
 Version:    2.0.16
-Release:    1jito%{?dist}
+Release:    100jito%{?dist}
 Summary:    Solana/Agave blockchain software (%{agave_suffix} version)
 
 License:    Apache-2.0
@@ -500,6 +500,9 @@ exit 0
 
 
 %changelog
+* Thu Nov 21 2024 Ivan Mironov <mironov.ivan@gmail.com> - 2.0.16-100jito
+- Rebuild for Mainnet
+
 * Sat Nov 16 2024 Ivan Mironov <mironov.ivan@gmail.com> - 2.0.16-1jito
 - Update to 2.0.16
 
