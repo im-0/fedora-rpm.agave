@@ -1,4 +1,4 @@
-From d7bd739649563572275ef0e92e4d360dca7f88bd Mon Sep 17 00:00:00 2001
+From 2f2ef44d3095cfdfb2b55937d675405926809392 Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Thu, 25 Aug 2022 17:18:46 -0500
 Subject: [PATCH] jito patch only reroute if relayer connected (#123) feat: add
@@ -298,6 +298,8 @@ Add bundle storage to new unprocessed transaction storage method
 Loosen tip requirement [v2.0] (#685)
 
 Add comments around ignoring the slot returned from ImmutableDeserializedPacket::build_sanitized_transaction
+
+Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
 ---
  .dockerignore                                 |    9 +
  .github/workflows/cargo.yml                   |    2 +
@@ -338,7 +340,7 @@ Add comments around ignoring the slot returned from ImmutableDeserializedPacket:
  core/benches/banking_stage.rs                 |   24 +-
  core/benches/consumer.rs                      |   28 +-
  core/benches/proto_to_packet.rs               |   57 +
- core/src/admin_rpc_post_init.rs               |    8 +-
+ core/src/admin_rpc_post_init.rs               |    9 +-
  core/src/banking_stage.rs                     |   85 +-
  core/src/banking_stage/committer.rs           |   17 +-
  core/src/banking_stage/consume_worker.rs      |   22 +-
@@ -369,7 +371,7 @@ Add comments around ignoring the slot returned from ImmutableDeserializedPacket:
  core/src/tpu.rs                               |  113 +-
  core/src/tpu_entry_notifier.rs                |   66 +-
  core/src/tvu.rs                               |    3 +
- core/src/validator.rs                         |  103 +-
+ core/src/validator.rs                         |  106 +-
  core/tests/epoch_accounts_hash.rs             |    2 +
  core/tests/snapshots.rs                       |    2 +
  cost-model/src/cost_tracker.rs                |    8 +
@@ -399,7 +401,7 @@ Add comments around ignoring the slot returned from ImmutableDeserializedPacket:
  ledger/src/token_balances.rs                  |   55 +-
  local-cluster/src/local_cluster.rs            |    3 +
  .../src/local_cluster_snapshot_utils.rs       |    6 +-
- local-cluster/src/validator_configs.rs        |    5 +
+ local-cluster/src/validator_configs.rs        |    6 +
  local-cluster/tests/local_cluster.rs          |   17 +-
  merkle-tree/src/merkle_tree.rs                |   46 +-
  multinode-demo/bootstrap-validator.sh         |   34 +
@@ -420,7 +422,6 @@ Add comments around ignoring the slot returned from ImmutableDeserializedPacket:
  rpc-client/src/nonblocking/rpc_client.rs      |   56 +-
  rpc-client/src/rpc_client.rs                  |   14 +
  rpc-test/Cargo.toml                           |    1 +
- rpc-test/tests/rpc.rs                         |    2 +
  rpc/Cargo.toml                                |    2 +
  rpc/src/rpc.rs                                |  489 ++++-
  rpc/src/rpc_service.rs                        |    9 +-
@@ -475,13 +476,13 @@ Add comments around ignoring the slot returned from ImmutableDeserializedPacket:
  .../broadcast_stage/standard_broadcast_run.rs |   24 +-
  turbine/src/retransmit_stage.rs               |   15 +-
  validator/Cargo.toml                          |    2 +
- validator/src/admin_rpc_service.rs            |  110 +-
+ validator/src/admin_rpc_service.rs            |  141 +-
  validator/src/bootstrap.rs                    |    3 +-
- validator/src/cli.rs                          |  205 +++
- validator/src/main.rs                         |  268 ++-
+ validator/src/cli.rs                          |  224 +++
+ validator/src/main.rs                         |  291 ++-
  version/src/lib.rs                            |    2 +-
  wen-restart/src/wen_restart.rs                |    4 +-
- 182 files changed, 17811 insertions(+), 870 deletions(-)
+ 181 files changed, 17887 insertions(+), 870 deletions(-)
  create mode 100644 .dockerignore
  create mode 100644 .github/workflows/rebase.yaml
  create mode 100644 .gitmodules
@@ -988,11 +989,11 @@ index 0000000000..e31fc7fccd
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index d3125d7da0..492d117474 100644
+index 8b37a0bfdd..e40f1620eb 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -154,7 +154,7 @@ name = "agave-ledger-tool"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
   "assert_cmd",
 - "bs58",
@@ -1652,7 +1653,7 @@ index d3125d7da0..492d117474 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.16"
++version = "2.0.18"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -1984,7 +1985,7 @@ index d3125d7da0..492d117474 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.16"
++version = "2.0.18"
 +dependencies = [
 + "anchor-lang",
 + "assert_matches",
@@ -2006,8 +2007,8 @@ index d3125d7da0..492d117474 100644
 +
  [[package]]
  name = "solana-cargo-build-bpf"
- version = "2.0.16"
-@@ -5846,7 +6191,7 @@ version = "2.0.16"
+ version = "2.0.18"
+@@ -5846,7 +6191,7 @@ version = "2.0.18"
  dependencies = [
   "assert_matches",
   "bincode",
@@ -2017,7 +2018,7 @@ index d3125d7da0..492d117474 100644
   "console",
   "const_format",
 @@ -6060,10 +6405,11 @@ name = "solana-core"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -2079,7 +2080,7 @@ index d3125d7da0..492d117474 100644
  ]
  
 @@ -6286,7 +6642,7 @@ name = "solana-frozen-abi"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
   "bitflags 2.5.0",
 - "bs58",
@@ -2089,7 +2090,7 @@ index d3125d7da0..492d117474 100644
   "im",
 @@ -6306,8 +6662,8 @@ dependencies = [
  name = "solana-frozen-abi-macro"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2099,7 +2100,7 @@ index d3125d7da0..492d117474 100644
   "syn 2.0.66",
  ]
 @@ -6353,7 +6709,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -2109,7 +2110,7 @@ index d3125d7da0..492d117474 100644
   "jsonrpc-core",
 @@ -6437,7 +6793,7 @@ dependencies = [
  name = "solana-keygen"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2127,7 +2128,7 @@ index d3125d7da0..492d117474 100644
   "chrono-humanize",
 @@ -6702,8 +7058,8 @@ dependencies = [
  name = "solana-package-metadata-macro"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2145,7 +2146,7 @@ index d3125d7da0..492d117474 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -6989,7 +7345,7 @@ version = "2.0.16"
+@@ -6989,7 +7345,7 @@ version = "2.0.18"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2179,7 +2180,7 @@ index d3125d7da0..492d117474 100644
   "crossbeam-channel",
   "futures 0.3.30",
   "indicatif",
-@@ -7080,7 +7438,7 @@ version = "2.0.16"
+@@ -7080,7 +7438,7 @@ version = "2.0.18"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -2200,7 +2201,7 @@ index d3125d7da0..492d117474 100644
   "solana-version",
   "thiserror",
 @@ -7119,13 +7479,14 @@ name = "solana-rpc-test"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2221,7 +2222,7 @@ index d3125d7da0..492d117474 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.16"
++version = "2.0.18"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -2239,10 +2240,10 @@ index d3125d7da0..492d117474 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.0.16"
+ version = "2.0.18"
 @@ -7247,12 +7626,14 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
 + "anchor-lang",
   "anyhow",
@@ -2258,7 +2259,7 @@ index d3125d7da0..492d117474 100644
   "byteorder",
 @@ -7305,9 +7686,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -2284,7 +2285,7 @@ index d3125d7da0..492d117474 100644
  ]
  
 @@ -7419,7 +7802,7 @@ name = "solana-storage-proto"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2298,7 +2299,7 @@ index d3125d7da0..492d117474 100644
  
 +[[package]]
 +name = "solana-tip-distributor"
-+version = "2.0.16"
++version = "2.0.18"
 +dependencies = [
 + "anchor-lang",
 + "clap 4.3.21",
@@ -2336,7 +2337,7 @@ index d3125d7da0..492d117474 100644
 +
  [[package]]
  name = "solana-tokens"
- version = "2.0.16"
+ version = "2.0.18"
 @@ -7685,7 +8106,7 @@ dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2348,7 +2349,7 @@ index d3125d7da0..492d117474 100644
   "serde",
 @@ -7900,7 +8321,7 @@ dependencies = [
  name = "solana-zk-keygen"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2686,7 +2687,7 @@ index d3125d7da0..492d117474 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index dff1879233..92730635c7 100644
+index 7ba564a133..1f26b64f1d 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -19,6 +19,7 @@ members = [
@@ -2747,7 +2748,7 @@ index dff1879233..92730635c7 100644
      "unprefixed_malloc_on_supported_platforms",
  ] }
  js-sys = "0.3.69"
-+jito-protos = { path = "jito-protos", version = "=2.0.16" }
++jito-protos = { path = "jito-protos", version = "=2.0.18" }
 +jito-tip-distribution = { path = "jito-programs/mev-programs/programs/tip-distribution", features = ["no-entrypoint"] }
 +jito-tip-payment = { path = "jito-programs/mev-programs/programs/tip-payment", features = ["no-entrypoint"] }
  json5 = "0.4.1"
@@ -2761,22 +2762,22 @@ index dff1879233..92730635c7 100644
  lazy-lru = "0.1.2"
  lazy_static = "1.4.0"
  libc = "0.2.155"
-@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.16" }
- solana-bloom = { path = "bloom", version = "=2.0.16" }
- solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.16" }
- solana-bucket-map = { path = "bucket_map", version = "=2.0.16" }
-+solana-bundle = { path = "bundle", version = "=2.0.16" }
- agave-cargo-registry = { path = "cargo-registry", version = "=2.0.16" }
- solana-clap-utils = { path = "clap-utils", version = "=2.0.16" }
- solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.16" }
-@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.16", default-features
- solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.16" }
- solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.16" }
- solana-runtime = { path = "runtime", version = "=2.0.16" }
-+solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.16" }
- solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.16" }
- solana-sdk = { path = "sdk", version = "=2.0.16" }
- solana-sdk-macro = { path = "sdk/macro", version = "=2.0.16" }
+@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.18" }
+ solana-bloom = { path = "bloom", version = "=2.0.18" }
+ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.18" }
+ solana-bucket-map = { path = "bucket_map", version = "=2.0.18" }
++solana-bundle = { path = "bundle", version = "=2.0.18" }
+ agave-cargo-registry = { path = "cargo-registry", version = "=2.0.18" }
+ solana-clap-utils = { path = "clap-utils", version = "=2.0.18" }
+ solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.18" }
+@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.18", default-features
+ solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.18" }
+ solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.18" }
+ solana-runtime = { path = "runtime", version = "=2.0.18" }
++solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.18" }
+ solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.18" }
+ solana-sdk = { path = "sdk", version = "=2.0.18" }
+ solana-sdk-macro = { path = "sdk/macro", version = "=2.0.18" }
 diff --git a/README.md b/README.md
 index 0d855e8cc8..4369c4bcb4 100644
 --- a/README.md
@@ -5241,7 +5242,7 @@ index 0000000000..1727d8af9c
 +    });
 +}
 diff --git a/core/src/admin_rpc_post_init.rs b/core/src/admin_rpc_post_init.rs
-index 364509a63b..425a4375c1 100644
+index 364509a63b..c58ba0db9c 100644
 --- a/core/src/admin_rpc_post_init.rs
 +++ b/core/src/admin_rpc_post_init.rs
 @@ -1,6 +1,7 @@
@@ -5263,13 +5264,14 @@ index 364509a63b..425a4375c1 100644
      },
  };
  
-@@ -23,4 +24,7 @@ pub struct AdminRpcRequestMetadataPostInit {
+@@ -23,4 +24,8 @@ pub struct AdminRpcRequestMetadataPostInit {
      pub repair_socket: Arc<UdpSocket>,
      pub outstanding_repair_requests: Arc<RwLock<OutstandingRequests<ShredRepairType>>>,
      pub cluster_slots: Arc<ClusterSlots>,
 +    pub block_engine_config: Arc<Mutex<BlockEngineConfig>>,
 +    pub relayer_config: Arc<Mutex<RelayerConfig>>,
 +    pub shred_receiver_address: Arc<RwLock<Option<SocketAddr>>>,
++    pub shred_retransmit_receiver_address: Arc<RwLock<Option<SocketAddr>>>,
  }
 diff --git a/core/src/banking_stage.rs b/core/src/banking_stage.rs
 index 1771116098..b9150aa46c 100644
@@ -14568,7 +14570,7 @@ index 4dcd7bbfa3..9e39bf390e 100644
          .expect("assume success");
          exit.store(true, Ordering::Relaxed);
 diff --git a/core/src/validator.rs b/core/src/validator.rs
-index d89520c0c8..7977b9aff8 100644
+index e2a250ae66..f544b2fe75 100644
 --- a/core/src/validator.rs
 +++ b/core/src/validator.rs
 @@ -15,6 +15,7 @@ use {
@@ -14636,7 +14638,7 @@ index d89520c0c8..7977b9aff8 100644
      pub accounts_hash_interval_slots: u64,
      pub max_genesis_archive_unpacked_size: u64,
      pub wal_recovery_mode: Option<BlockstoreRecoveryMode>,
-@@ -275,6 +286,12 @@ pub struct ValidatorConfig {
+@@ -275,6 +286,13 @@ pub struct ValidatorConfig {
      pub replay_forks_threads: NonZeroUsize,
      pub replay_transactions_threads: NonZeroUsize,
      pub delay_leader_block_for_pending_fork: bool,
@@ -14644,24 +14646,26 @@ index d89520c0c8..7977b9aff8 100644
 +    pub block_engine_config: Arc<Mutex<BlockEngineConfig>>,
 +    // Using Option inside RwLock is ugly, but only convenient way to allow toggle on/off
 +    pub shred_receiver_address: Arc<RwLock<Option<SocketAddr>>>,
++    pub shred_retransmit_receiver_address: Arc<RwLock<Option<SocketAddr>>>,
 +    pub tip_manager_config: TipManagerConfig,
 +    pub preallocated_bundle_cost: u64,
  }
  
  impl Default for ValidatorConfig {
-@@ -347,6 +364,11 @@ impl Default for ValidatorConfig {
+@@ -347,6 +365,12 @@ impl Default for ValidatorConfig {
              replay_forks_threads: NonZeroUsize::new(1).expect("1 is non-zero"),
              replay_transactions_threads: NonZeroUsize::new(1).expect("1 is non-zero"),
              delay_leader_block_for_pending_fork: false,
 +            relayer_config: Arc::new(Mutex::new(RelayerConfig::default())),
 +            block_engine_config: Arc::new(Mutex::new(BlockEngineConfig::default())),
 +            shred_receiver_address: Arc::new(RwLock::new(None)),
++            shred_retransmit_receiver_address: Arc::new(RwLock::new(None)),
 +            tip_manager_config: TipManagerConfig::default(),
 +            preallocated_bundle_cost: u64::default(),
          }
      }
  }
-@@ -385,7 +407,8 @@ impl ValidatorConfig {
+@@ -385,7 +409,8 @@ impl ValidatorConfig {
  // having to watch log messages.
  #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
  pub enum ValidatorStartProgress {
@@ -14671,7 +14675,7 @@ index d89520c0c8..7977b9aff8 100644
      SearchingForRpcService,
      DownloadingSnapshot {
          slot: Slot,
-@@ -399,7 +422,8 @@ pub enum ValidatorStartProgress {
+@@ -399,7 +424,8 @@ pub enum ValidatorStartProgress {
          max_slot: Slot,
      },
      StartingServices,
@@ -14681,7 +14685,7 @@ index d89520c0c8..7977b9aff8 100644
      WaitingForSupermajority {
          slot: Slot,
          gossip_stake_percent: u64,
-@@ -516,6 +540,10 @@ impl Validator {
+@@ -516,6 +542,10 @@ impl Validator {
          tpu_enable_udp: bool,
          tpu_max_connections_per_ipaddr_per_minute: u64,
          admin_rpc_service_post_init: Arc<RwLock<Option<AdminRpcRequestMetadataPostInit>>>,
@@ -14692,7 +14696,7 @@ index d89520c0c8..7977b9aff8 100644
      ) -> Result<Self, String> {
          let start_time = Instant::now();
  
-@@ -929,6 +957,17 @@ impl Validator {
+@@ -935,6 +965,17 @@ impl Validator {
              None,
          ));
  
@@ -14710,15 +14714,15 @@ index d89520c0c8..7977b9aff8 100644
          let max_slots = Arc::new(MaxSlots::default());
  
          let startup_verification_complete;
-@@ -1369,6 +1408,7 @@ impl Validator {
+@@ -1375,6 +1416,7 @@ impl Validator {
              outstanding_repair_requests.clone(),
              cluster_slots.clone(),
              wen_restart_repair_slots.clone(),
-+            config.shred_receiver_address.clone(),
++            config.shred_retransmit_receiver_address.clone(),
          )?;
  
          if in_wen_restart {
-@@ -1437,6 +1477,11 @@ impl Validator {
+@@ -1443,6 +1485,11 @@ impl Validator {
              config.block_production_method.clone(),
              config.enable_block_production_forwarding,
              config.generator_config.clone(),
@@ -14730,17 +14734,18 @@ index d89520c0c8..7977b9aff8 100644
          );
  
          datapoint_info!(
-@@ -1461,6 +1506,9 @@ impl Validator {
+@@ -1467,6 +1514,10 @@ impl Validator {
              repair_socket: Arc::new(node.sockets.repair),
              outstanding_repair_requests,
              cluster_slots,
 +            block_engine_config: config.block_engine_config.clone(),
 +            relayer_config: config.relayer_config.clone(),
 +            shred_receiver_address: config.shred_receiver_address.clone(),
++            shred_retransmit_receiver_address: config.shred_retransmit_receiver_address.clone(),
          });
  
          Ok(Self {
-@@ -1927,6 +1975,7 @@ fn load_blockstore(
+@@ -1933,6 +1984,7 @@ fn load_blockstore(
                  .map(|service| service.sender()),
              accounts_update_notifier,
              exit,
@@ -14748,7 +14753,7 @@ index d89520c0c8..7977b9aff8 100644
          )
          .map_err(|err| err.to_string())?;
  
-@@ -2618,6 +2667,7 @@ mod tests {
+@@ -2624,6 +2676,7 @@ mod tests {
              DEFAULT_TPU_ENABLE_UDP,
              32, // max connections per IpAddr per minute for test
              Arc::new(RwLock::new(None)),
@@ -14756,7 +14761,7 @@ index d89520c0c8..7977b9aff8 100644
          )
          .expect("assume successful validator start");
          assert_eq!(
-@@ -2695,7 +2745,7 @@ mod tests {
+@@ -2701,7 +2754,7 @@ mod tests {
                      Arc::new(RwLock::new(vec![Arc::new(vote_account_keypair)])),
                      vec![leader_node.info.clone()],
                      &config,
@@ -14765,7 +14770,7 @@ index d89520c0c8..7977b9aff8 100644
                      None, // rpc_to_plugin_manager_receiver
                      Arc::new(RwLock::new(ValidatorStartProgress::default())),
                      SocketAddrSpace::Unspecified,
-@@ -2704,6 +2754,7 @@ mod tests {
+@@ -2710,6 +2763,7 @@ mod tests {
                      DEFAULT_TPU_ENABLE_UDP,
                      32, // max connections per IpAddr per minute for test
                      Arc::new(RwLock::new(None)),
@@ -14773,7 +14778,7 @@ index d89520c0c8..7977b9aff8 100644
                  )
                  .expect("assume successful validator start")
              })
-@@ -2820,7 +2871,7 @@ mod tests {
+@@ -2826,7 +2880,7 @@ mod tests {
  
          assert!(is_snapshot_config_valid(
              &new_snapshot_config(300, 200),
@@ -14782,7 +14787,7 @@ index d89520c0c8..7977b9aff8 100644
          ));
  
          let default_accounts_hash_interval =
-@@ -2828,62 +2879,62 @@ mod tests {
+@@ -2834,62 +2888,62 @@ mod tests {
          assert!(is_snapshot_config_valid(
              &new_snapshot_config(
                  snapshot_bank_utils::DEFAULT_FULL_SNAPSHOT_ARCHIVE_INTERVAL_SLOTS,
@@ -14859,7 +14864,7 @@ index d89520c0c8..7977b9aff8 100644
          ));
          assert!(is_snapshot_config_valid(
              &SnapshotConfig {
-@@ -2891,7 +2942,7 @@ mod tests {
+@@ -2897,7 +2951,7 @@ mod tests {
                  incremental_snapshot_archive_interval_slots: 37,
                  ..SnapshotConfig::new_load_only()
              },
@@ -14868,7 +14873,7 @@ index d89520c0c8..7977b9aff8 100644
          ));
          assert!(is_snapshot_config_valid(
              &SnapshotConfig {
-@@ -2899,7 +2950,7 @@ mod tests {
+@@ -2905,7 +2959,7 @@ mod tests {
                  incremental_snapshot_archive_interval_slots: DISABLED_SNAPSHOT_ARCHIVE_INTERVAL,
                  ..SnapshotConfig::new_load_only()
              },
@@ -16062,16 +16067,17 @@ index 3ba9cda04d..95923cabd9 100644
                          {
                              if incremental_snapshot_archive_info.slot() >= last_slot {
 diff --git a/local-cluster/src/validator_configs.rs b/local-cluster/src/validator_configs.rs
-index a2366eb414..05971e1f02 100644
+index a2366eb414..48c97b655b 100644
 --- a/local-cluster/src/validator_configs.rs
 +++ b/local-cluster/src/validator_configs.rs
-@@ -73,6 +73,11 @@ pub fn safe_clone_config(config: &ValidatorConfig) -> ValidatorConfig {
+@@ -73,6 +73,12 @@ pub fn safe_clone_config(config: &ValidatorConfig) -> ValidatorConfig {
          replay_forks_threads: config.replay_forks_threads,
          replay_transactions_threads: config.replay_transactions_threads,
          delay_leader_block_for_pending_fork: config.delay_leader_block_for_pending_fork,
 +        relayer_config: config.relayer_config.clone(),
 +        block_engine_config: config.block_engine_config.clone(),
 +        shred_receiver_address: config.shred_receiver_address.clone(),
++        shred_retransmit_receiver_address: config.shred_retransmit_receiver_address.clone(),
 +        tip_manager_config: config.tip_manager_config.clone(),
 +        preallocated_bundle_cost: config.preallocated_bundle_cost,
      }
@@ -21482,7 +21488,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index 99b6788ddc..abbb9c12ce 100644
+index 00ee93c676..a9a4a60f2c 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -123,6 +123,7 @@ dependencies = [
@@ -21986,7 +21992,7 @@ index 99b6788ddc..abbb9c12ce 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.16"
++version = "2.0.18"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -22307,7 +22313,7 @@ index 99b6788ddc..abbb9c12ce 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.16"
++version = "2.0.18"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -22328,9 +22334,9 @@ index 99b6788ddc..abbb9c12ce 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.0.16"
+ version = "2.0.18"
 @@ -4832,9 +5111,10 @@ name = "solana-core"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -22385,7 +22391,7 @@ index 99b6788ddc..abbb9c12ce 100644
  ]
  
 @@ -5005,7 +5294,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -22402,7 +22408,7 @@ index 99b6788ddc..abbb9c12ce 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -5454,7 +5743,7 @@ version = "2.0.16"
+@@ -5454,7 +5743,7 @@ version = "2.0.18"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -22436,7 +22442,7 @@ index 99b6788ddc..abbb9c12ce 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -5536,7 +5827,7 @@ version = "2.0.16"
+@@ -5536,7 +5827,7 @@ version = "2.0.18"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -22462,7 +22468,7 @@ index 99b6788ddc..abbb9c12ce 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.16"
++version = "2.0.18"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -22480,10 +22486,10 @@ index 99b6788ddc..abbb9c12ce 100644
 +
  [[package]]
  name = "solana-sbf-programs"
- version = "2.0.16"
+ version = "2.0.18"
 @@ -6102,10 +6413,12 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
 + "anchor-lang",
 + "base64 0.22.1",
@@ -22497,7 +22503,7 @@ index 99b6788ddc..abbb9c12ce 100644
   "byteorder 1.5.0",
 @@ -6150,9 +6463,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -22517,7 +22523,7 @@ index 99b6788ddc..abbb9c12ce 100644
   "solana-metrics",
   "solana-runtime",
 @@ -6229,7 +6543,7 @@ name = "solana-storage-proto"
- version = "2.0.16"
+ version = "2.0.18"
  dependencies = [
   "bincode",
 - "bs58",
@@ -23215,26 +23221,6 @@ index eb69e4c95d..ea8d766641 100644
  solana-logger = { workspace = true }
  
  [package.metadata.docs.rs]
-diff --git a/rpc-test/tests/rpc.rs b/rpc-test/tests/rpc.rs
-index 463e204686..216f01d328 100644
---- a/rpc-test/tests/rpc.rs
-+++ b/rpc-test/tests/rpc.rs
-@@ -5,6 +5,7 @@ use {
-     log::*,
-     reqwest::{self, header::CONTENT_TYPE},
-     serde_json::{json, Value},
-+    serial_test::serial,
-     solana_account_decoder::UiAccount,
-     solana_client::{
-         connection_cache::ConnectionCache,
-@@ -286,6 +287,7 @@ fn test_rpc_slot_updates() {
- }
- 
- #[test]
-+#[serial] // helps test pass
- fn test_rpc_subscriptions() {
-     solana_logger::setup();
- 
 diff --git a/rpc/Cargo.toml b/rpc/Cargo.toml
 index 2a0c5c480d..b9616c2fb0 100644
 --- a/rpc/Cargo.toml
@@ -24737,7 +24723,7 @@ index 0000000000..5fcb625a26
 +    }
 +}
 diff --git a/runtime/src/bank.rs b/runtime/src/bank.rs
-index 07832cc81a..76d5d99201 100644
+index f0d4106cc4..3dc42704b2 100644
 --- a/runtime/src/bank.rs
 +++ b/runtime/src/bank.rs
 @@ -67,7 +67,7 @@ use {
@@ -24748,8 +24734,8 @@ index 07832cc81a..76d5d99201 100644
 +        accounts::{AccountAddressFilter, AccountLocks, Accounts, PubkeyAccountSlot},
          accounts_db::{
              AccountShrinkThreshold, AccountStorageEntry, AccountsDb, AccountsDbConfig,
-             CalcAccountsHashDataSource, PubkeyHashAccount, VerifyAccountsHashAndLamportsConfig,
-@@ -340,6 +340,7 @@ impl BankRc {
+             CalcAccountsHashDataSource, OldStoragesPolicy, PubkeyHashAccount,
+@@ -341,6 +341,7 @@ impl BankRc {
      }
  }
  
@@ -24757,7 +24743,7 @@ index 07832cc81a..76d5d99201 100644
  pub struct LoadAndExecuteTransactionsOutput {
      pub loaded_transactions: Vec<TransactionLoadResult>,
      // Vector of results indicating whether a transaction was executed or could not
-@@ -357,6 +358,22 @@ pub struct LoadAndExecuteTransactionsOutput {
+@@ -358,6 +359,22 @@ pub struct LoadAndExecuteTransactionsOutput {
      pub error_counters: TransactionErrorMetrics,
  }
  
@@ -24780,7 +24766,7 @@ index 07832cc81a..76d5d99201 100644
  pub struct TransactionSimulationResult {
      pub result: Result<()>,
      pub logs: TransactionLogMessages,
-@@ -812,7 +829,7 @@ pub struct Bank {
+@@ -813,7 +830,7 @@ pub struct Bank {
      inflation: Arc<RwLock<Inflation>>,
  
      /// cache of vote_account and stake_account state for this fork
@@ -24789,7 +24775,7 @@ index 07832cc81a..76d5d99201 100644
  
      /// staked nodes on epoch boundaries, saved off when a bank.slot() is at
      ///   a leader schedule calculation boundary
-@@ -3296,17 +3313,61 @@ impl Bank {
+@@ -3297,17 +3314,61 @@ impl Bank {
          &'a self,
          transactions: &'b [SanitizedTransaction],
          transaction_results: impl Iterator<Item = Result<()>>,
@@ -24852,7 +24838,7 @@ index 07832cc81a..76d5d99201 100644
      /// Prepare a transaction batch from a single transaction without locking accounts
      pub fn prepare_unlocked_batch_from_single_tx<'a>(
          &'a self,
-@@ -3428,7 +3489,11 @@ impl Bank {
+@@ -3429,7 +3490,11 @@ impl Bank {
          }
      }
  
@@ -24865,7 +24851,7 @@ index 07832cc81a..76d5d99201 100644
          let mut account_overrides = AccountOverrides::default();
          let slot_history_id = sysvar::slot_history::id();
          if account_keys.iter().any(|pubkey| *pubkey == slot_history_id) {
-@@ -3616,6 +3681,30 @@ impl Bank {
+@@ -3617,6 +3682,30 @@ impl Bank {
          balances
      }
  
@@ -29477,7 +29463,7 @@ index e9ed6a1a6e..c0fa09ce7d 100644
      }
      fn record(&mut self, receiver: &RecordReceiver, blockstore: &Blockstore) -> Result<()> {
 diff --git a/turbine/src/broadcast_stage/standard_broadcast_run.rs b/turbine/src/broadcast_stage/standard_broadcast_run.rs
-index 814fed7dee..dc6865081f 100644
+index 22e000e2af..d1e042a47f 100644
 --- a/turbine/src/broadcast_stage/standard_broadcast_run.rs
 +++ b/turbine/src/broadcast_stage/standard_broadcast_run.rs
 @@ -17,7 +17,7 @@ use {
@@ -29659,7 +29645,7 @@ index 6222435906..739d61159a 100644
  [dev-dependencies]
  solana-account-decoder = { workspace = true }
 diff --git a/validator/src/admin_rpc_service.rs b/validator/src/admin_rpc_service.rs
-index 99ef4b53a0..4cd7b44c93 100644
+index 99ef4b53a0..0fe758bfe9 100644
 --- a/validator/src/admin_rpc_service.rs
 +++ b/validator/src/admin_rpc_service.rs
 @@ -12,6 +12,10 @@ use {
@@ -29681,7 +29667,7 @@ index 99ef4b53a0..4cd7b44c93 100644
          sync::{Arc, RwLock},
          thread::{self, Builder},
          time::{Duration, SystemTime},
-@@ -243,6 +248,27 @@ pub trait AdminRpc {
+@@ -243,6 +248,34 @@ pub trait AdminRpc {
          meta: Self::Metadata,
          public_tpu_forwards_addr: SocketAddr,
      ) -> Result<()>;
@@ -29706,10 +29692,17 @@ index 99ef4b53a0..4cd7b44c93 100644
 +
 +    #[rpc(meta, name = "setShredReceiverAddress")]
 +    fn set_shred_receiver_address(&self, meta: Self::Metadata, addr: String) -> Result<()>;
++
++    #[rpc(meta, name = "setShredRetransmitReceiverAddress")]
++    fn set_shred_retransmit_receiver_address(
++        &self,
++        meta: Self::Metadata,
++        addr: String,
++    ) -> Result<()>;
  }
  
  pub struct AdminRpcImpl;
-@@ -441,6 +467,30 @@ impl AdminRpc for AdminRpcImpl {
+@@ -441,6 +474,30 @@ impl AdminRpc for AdminRpcImpl {
          Ok(())
      }
  
@@ -29740,7 +29733,7 @@ index 99ef4b53a0..4cd7b44c93 100644
      fn set_identity(
          &self,
          meta: Self::Metadata,
-@@ -475,6 +525,55 @@ impl AdminRpc for AdminRpcImpl {
+@@ -475,6 +532,77 @@ impl AdminRpc for AdminRpcImpl {
          AdminRpcImpl::set_identity_keypair(meta, identity_keypair, require_tower)
      }
  
@@ -29793,10 +29786,32 @@ index 99ef4b53a0..4cd7b44c93 100644
 +        })
 +    }
 +
++    fn set_shred_retransmit_receiver_address(
++        &self,
++        meta: Self::Metadata,
++        addr: String,
++    ) -> Result<()> {
++        let shred_receiver_address = if addr.is_empty() {
++            None
++        } else {
++            Some(SocketAddr::from_str(&addr).map_err(|_| {
++                jsonrpc_core::error::Error::invalid_params(format!(
++                    "invalid shred receiver address: {}",
++                    addr
++                ))
++            })?)
++        };
++
++        meta.with_post_init(|post_init| {
++            *post_init.shred_retransmit_receiver_address.write().unwrap() = shred_receiver_address;
++            Ok(())
++        })
++    }
++
      fn set_staked_nodes_overrides(&self, meta: Self::Metadata, path: String) -> Result<()> {
          let loaded_config = load_staked_nodes_overrides(&path)
              .map_err(|err| {
-@@ -880,7 +979,10 @@ mod tests {
+@@ -880,7 +1008,10 @@ mod tests {
              solana_program::{program_option::COption, program_pack::Pack},
              state::{Account as TokenAccount, AccountState as TokenAccountState, Mint},
          },
@@ -29808,23 +29823,25 @@ index 99ef4b53a0..4cd7b44c93 100644
      };
  
      #[derive(Default)]
-@@ -918,6 +1020,9 @@ mod tests {
+@@ -918,6 +1049,10 @@ mod tests {
              let vote_account = vote_keypair.pubkey();
              let start_progress = Arc::new(RwLock::new(ValidatorStartProgress::default()));
              let repair_whitelist = Arc::new(RwLock::new(HashSet::new()));
 +            let block_engine_config = Arc::new(Mutex::new(BlockEngineConfig::default()));
 +            let relayer_config = Arc::new(Mutex::new(RelayerConfig::default()));
 +            let shred_receiver_address = Arc::new(RwLock::new(None));
++            let shred_retransmit_receiver_address = Arc::new(RwLock::new(None));
              let meta = AdminRpcRequestMetadata {
                  rpc_addr: None,
                  start_time: SystemTime::now(),
-@@ -938,6 +1043,9 @@ mod tests {
+@@ -938,6 +1073,10 @@ mod tests {
                      cluster_slots: Arc::new(
                          solana_core::cluster_slots_service::cluster_slots::ClusterSlots::default(),
                      ),
 +                    block_engine_config,
 +                    relayer_config,
 +                    shred_receiver_address,
++                    shred_retransmit_receiver_address,
                  }))),
                  staked_nodes_overrides: Arc::new(RwLock::new(HashMap::new())),
                  rpc_to_plugin_manager_sender: None,
@@ -29848,7 +29865,7 @@ index 63084741f0..a0e4bf45e1 100644
                  .map(|incremental_snapshot_info| {
                      (
 diff --git a/validator/src/cli.rs b/validator/src/cli.rs
-index d2b70583d2..8d8c4767a6 100644
+index d2b70583d2..d7af738af0 100644
 --- a/validator/src/cli.rs
 +++ b/validator/src/cli.rs
 @@ -68,6 +68,10 @@ const MAX_SNAPSHOT_DOWNLOAD_ABORT: u32 = 5;
@@ -29862,7 +29879,7 @@ index d2b70583d2..8d8c4767a6 100644
  pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
      return App::new(crate_name!())
          .about(crate_description!())
-@@ -81,6 +85,87 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
+@@ -81,6 +85,94 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
                  .long(SKIP_SEED_PHRASE_VALIDATION_ARG.long)
                  .help(SKIP_SEED_PHRASE_VALIDATION_ARG.help),
          )
@@ -29945,12 +29962,19 @@ index d2b70583d2..8d8c4767a6 100644
 +                .long("shred-receiver-address")
 +                .value_name("SHRED_RECEIVER_ADDRESS")
 +                .takes_value(true)
-+                .help("Validator will forward all shreds to this address in addition to normal turbine operation. Set to empty string to disable.")
++                .help("Validator will forward all leader shreds to this address in addition to normal turbine operation. Set to empty string to disable.")
++        )
++        .arg(
++            Arg::with_name("shred_retransmit_receiver_address")
++                .long("shred-retransmit-receiver-address")
++                .value_name("SHRED_RETRANSMIT_RECEIVER_ADDRESS")
++                .takes_value(true)
++                .help("Validator will forward all retransmit shreds to this address in addition to normal turbine operation. Set to empty string to disable.")
 +        )
          .arg(
              Arg::with_name("identity")
                  .short("i")
-@@ -1182,6 +1267,14 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
+@@ -1182,6 +1274,14 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
                  .multiple(true)
                  .help("Specify the configuration file for the Geyser plugin."),
          )
@@ -29965,7 +29989,7 @@ index d2b70583d2..8d8c4767a6 100644
          .arg(
              Arg::with_name("snapshot_archive_format")
                  .long("snapshot-archive-format")
-@@ -1573,6 +1666,68 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
+@@ -1573,6 +1673,80 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
          .args(&thread_args(&default_args.thread_args))
          .args(&get_deprecated_arguments())
          .after_help("The default subcommand is run")
@@ -30031,10 +30055,22 @@ index d2b70583d2..8d8c4767a6 100644
 +                        .required(true)
 +                )
 +        )
++        .subcommand(
++            SubCommand::with_name("set-shred-retransmit-receiver-address")
++                .about("Changes shred retransmit receiver address")
++                .arg(
++                    Arg::with_name("shred_receiver_address")
++                        .long("shred-receiver-address")
++                        .value_name("SHRED_RECEIVER_ADDRESS")
++                        .takes_value(true)
++                        .help("Validator will forward all retransmit shreds to this address in addition to normal turbine operation. Set to empty string to disable.")
++                        .required(true)
++                )
++        )
          .subcommand(
              SubCommand::with_name("exit")
                  .about("Send an exit request to the validator")
-@@ -1749,6 +1904,48 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
+@@ -1749,6 +1923,48 @@ pub fn app<'a>(version: &'a str, default_args: &'a DefaultArgs) -> App<'a, 'a> {
          )
          .subcommand(SubCommand::with_name("monitor").about("Monitor the validator"))
          .subcommand(SubCommand::with_name("run").about("Run the validator"))
@@ -30083,7 +30119,7 @@ index d2b70583d2..8d8c4767a6 100644
          .subcommand(
              SubCommand::with_name("plugin")
                  .about("Manage and view geyser plugins")
-@@ -2746,6 +2943,14 @@ pub fn test_app<'a>(version: &'a str, default_args: &'a DefaultTestArgs) -> App<
+@@ -2746,6 +2962,14 @@ pub fn test_app<'a>(version: &'a str, default_args: &'a DefaultTestArgs) -> App<
                  .multiple(true)
                  .help("Specify the configuration file for the Geyser plugin."),
          )
@@ -30099,7 +30135,7 @@ index d2b70583d2..8d8c4767a6 100644
              Arg::with_name("deactivate_feature")
                  .long("deactivate-feature")
 diff --git a/validator/src/main.rs b/validator/src/main.rs
-index 8467bcaa9d..9ce6a23b79 100644
+index 8467bcaa9d..083ed464ff 100644
 --- a/validator/src/main.rs
 +++ b/validator/src/main.rs
 @@ -1,4 +1,5 @@
@@ -30141,7 +30177,7 @@ index 8467bcaa9d..9ce6a23b79 100644
  };
  
  #[cfg(not(target_env = "msvc"))]
-@@ -474,6 +482,60 @@ pub fn main() {
+@@ -474,6 +482,76 @@ pub fn main() {
  
      let operation = match matches.subcommand() {
          ("", _) | ("run", _) => Operation::Run,
@@ -30199,10 +30235,26 @@ index 8467bcaa9d..9ce6a23b79 100644
 +                });
 +            return;
 +        }
++        ("set-shred-retransmit-receiver-address", Some(subcommand_matches)) => {
++            let addr = value_t_or_exit!(subcommand_matches, "shred_receiver_address", String);
++            let admin_client = admin_rpc_service::connect(&ledger_path);
++            admin_rpc_service::runtime()
++                .block_on(async move {
++                    admin_client
++                        .await?
++                        .set_shred_retransmit_receiver_address(addr)
++                        .await
++                })
++                .unwrap_or_else(|err| {
++                    println!("set shred receiver address failed: {}", err);
++                    exit(1);
++                });
++            return;
++        }
          ("authorized-voter", Some(authorized_voter_subcommand_matches)) => {
              match authorized_voter_subcommand_matches.subcommand() {
                  ("add", Some(subcommand_matches)) => {
-@@ -625,6 +687,92 @@ pub fn main() {
+@@ -625,6 +703,92 @@ pub fn main() {
                  _ => unreachable!(),
              }
          }
@@ -30295,7 +30347,7 @@ index 8467bcaa9d..9ce6a23b79 100644
          ("contact-info", Some(subcommand_matches)) => {
              let output_mode = subcommand_matches.value_of("output");
              let admin_client = admin_rpc_service::connect(&ledger_path);
-@@ -1381,6 +1529,44 @@ pub fn main() {
+@@ -1381,6 +1545,44 @@ pub fn main() {
          tvu_receive_threads,
      } = cli::thread_args::parse_num_threads_args(&matches);
  
@@ -30340,7 +30392,7 @@ index 8467bcaa9d..9ce6a23b79 100644
      let mut validator_config = ValidatorConfig {
          require_tower: matches.is_present("require_tower"),
          tower_storage,
-@@ -1512,6 +1698,14 @@ pub fn main() {
+@@ -1512,6 +1714,21 @@ pub fn main() {
              log_messages_bytes_limit: value_of(&matches, "log_messages_bytes_limit"),
              ..RuntimeConfig::default()
          },
@@ -30352,10 +30404,17 @@ index 8467bcaa9d..9ce6a23b79 100644
 +                .value_of("shred_receiver_address")
 +                .map(|addr| SocketAddr::from_str(addr).expect("shred_receiver_address invalid")),
 +        )),
++        shred_retransmit_receiver_address: Arc::new(RwLock::new(
++            matches
++                .value_of("shred_retransmit_receiver_address")
++                .map(|addr| {
++                    SocketAddr::from_str(addr).expect("shred_retransmit_receiver_address invalid")
++                }),
++        )),
          staked_nodes_overrides: staked_nodes_overrides.clone(),
          use_snapshot_archives_at_startup: value_t_or_exit!(
              matches,
-@@ -1523,6 +1717,8 @@ pub fn main() {
+@@ -1523,6 +1740,8 @@ pub fn main() {
          replay_transactions_threads,
          delay_leader_block_for_pending_fork: matches
              .is_present("delay_leader_block_for_pending_fork"),
@@ -30364,7 +30423,7 @@ index 8467bcaa9d..9ce6a23b79 100644
          ..ValidatorConfig::default()
      };
  
-@@ -1861,6 +2057,31 @@ pub fn main() {
+@@ -1861,6 +2080,31 @@ pub fn main() {
          },
      );
  
@@ -30396,7 +30455,7 @@ index 8467bcaa9d..9ce6a23b79 100644
      let gossip_host: IpAddr = matches
          .value_of("gossip_host")
          .map(|gossip_host| {
-@@ -2043,6 +2264,7 @@ pub fn main() {
+@@ -2043,6 +2287,7 @@ pub fn main() {
          tpu_enable_udp,
          tpu_max_connections_per_ipaddr_per_minute,
          admin_service_post_init,
@@ -30404,7 +30463,7 @@ index 8467bcaa9d..9ce6a23b79 100644
      )
      .unwrap_or_else(|e| {
          error!("Failed to start validator: {:?}", e);
-@@ -2108,3 +2330,47 @@ fn process_account_indexes(matches: &ArgMatches) -> AccountSecondaryIndexes {
+@@ -2108,3 +2353,47 @@ fn process_account_indexes(matches: &ArgMatches) -> AccountSecondaryIndexes {
          indexes: account_indexes,
      }
  }
