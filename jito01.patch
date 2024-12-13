@@ -1,4 +1,4 @@
-From 8178af1c3268c6139ac4cac407f3168a5f163e8f Mon Sep 17 00:00:00 2001
+From 38d0b37b04fc2c901539db3a608b3ca053af9535 Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Thu, 25 Aug 2022 17:18:46 -0500
 Subject: [PATCH] jito patch only reroute if relayer connected (#123) feat: add
@@ -332,6 +332,7 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  ci/buildkite-solana-private.sh                |    4 +-
  ci/channel-info.sh                            |    2 +-
  ci/check-crates.sh                            |    3 +
+ ci/do-audit.sh                                |   11 +
  ci/publish-installer.sh                       |   16 +-
  ci/publish-tarball.sh                         |    8 +-
  ci/test-coverage.sh                           |    2 +-
@@ -481,7 +482,7 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  validator/src/main.rs                         |  291 ++-
  version/src/lib.rs                            |    2 +-
  wen-restart/src/wen_restart.rs                |    4 +-
- 180 files changed, 17830 insertions(+), 876 deletions(-)
+ 181 files changed, 17841 insertions(+), 876 deletions(-)
  create mode 100644 .dockerignore
  create mode 100644 .github/workflows/rebase.yaml
  create mode 100644 .gitmodules
@@ -4899,6 +4900,28 @@ index 4f407824a3..802fe7b63c 100755
    echo "=== $crate_name ($file) ==="
  
    if [[ $package_publish = 'false' ]]; then
+diff --git a/ci/do-audit.sh b/ci/do-audit.sh
+index aca50d122f..0e63dcef22 100755
+--- a/ci/do-audit.sh
++++ b/ci/do-audit.sh
+@@ -34,6 +34,17 @@ cargo_audit_ignores=(
+   # curve25519-dalek
+   --ignore RUSTSEC-2024-0344
+ 
++  # Crate:     idna
++  # Version:   0.1.5
++  # Title:     `idna` accepts Punycode labels that do not produce any non-ASCII when decoded
++  # Date:      2024-12-09
++  # ID:        RUSTSEC-2024-0421
++  # URL:       https://rustsec.org/advisories/RUSTSEC-2024-0421
++  # Solution:  Upgrade to >=1.0.0
++  # need to solve this depentant tree:
++  # jsonrpc-core-client v18.0.0 -> jsonrpc-client-transports v18.0.0 -> url v1.7.2 -> idna v0.1.5
++  --ignore RUSTSEC-2024-0421
++
+   # tonic
+   # When using tonic::transport::Server there is a remote DoS attack that can cause
+   # the server to exit cleanly on accepting a tcp/tls stream.
 diff --git a/ci/publish-installer.sh b/ci/publish-installer.sh
 index f7d98ffd5d..2caf990037 100755
 --- a/ci/publish-installer.sh
