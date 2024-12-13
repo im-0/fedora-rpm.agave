@@ -1,4 +1,4 @@
-From 2f2ef44d3095cfdfb2b55937d675405926809392 Mon Sep 17 00:00:00 2001
+From 8178af1c3268c6139ac4cac407f3168a5f163e8f Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Thu, 25 Aug 2022 17:18:46 -0500
 Subject: [PATCH] jito patch only reroute if relayer connected (#123) feat: add
@@ -313,7 +313,7 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  .github/workflows/release-artifacts.yml       |    1 +
  .gitignore                                    |    5 +
  .gitmodules                                   |    9 +
- Cargo.lock                                    |  781 ++++++--
+ Cargo.lock                                    |  781 +++++++--
  Cargo.toml                                    |   18 +-
  README.md                                     |   33 +-
  RELEASE.md                                    |   85 +-
@@ -324,7 +324,7 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  banks-server/src/banks_server.rs              |    5 +-
  bootstrap                                     |   26 +
  bundle/Cargo.toml                             |   37 +
- bundle/src/bundle_execution.rs                | 1216 +++++++++++++
+ bundle/src/bundle_execution.rs                | 1221 +++++++++++++
  bundle/src/lib.rs                             |   60 +
  ci/buildkite-pipeline-in-disk.sh              |    4 +-
  ci/buildkite-pipeline.sh                      |    4 +-
@@ -344,30 +344,29 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  core/src/banking_stage.rs                     |   85 +-
  core/src/banking_stage/committer.rs           |   17 +-
  core/src/banking_stage/consume_worker.rs      |   22 +-
- core/src/banking_stage/consumer.rs            |  195 +-
+ core/src/banking_stage/consumer.rs            |  195 ++-
  .../banking_stage/latest_unprocessed_votes.rs |    2 +-
  core/src/banking_stage/qos_service.rs         |   48 +-
  .../unprocessed_transaction_storage.rs        |  470 ++++-
  core/src/banking_trace.rs                     |    1 +
  core/src/bundle_stage.rs                      |  434 +++++
  .../src/bundle_stage/bundle_account_locker.rs |  326 ++++
- core/src/bundle_stage/bundle_consumer.rs      | 1584 +++++++++++++++++
+ core/src/bundle_stage/bundle_consumer.rs      | 1556 +++++++++++++++++
  .../bundle_packet_deserializer.rs             |  271 +++
  .../bundle_stage/bundle_packet_receiver.rs    |  825 +++++++++
  .../bundle_reserved_space_manager.rs          |  237 +++
  .../bundle_stage_leader_metrics.rs            |  506 ++++++
  core/src/bundle_stage/committer.rs            |  227 +++
  core/src/bundle_stage/result.rs               |   41 +
- core/src/consensus_cache_updater.rs           |   52 +
- core/src/immutable_deserialized_bundle.rs     |  490 +++++
- core/src/lib.rs                               |   50 +
+ core/src/immutable_deserialized_bundle.rs     |  490 ++++++
+ core/src/lib.rs                               |   49 +
  core/src/packet_bundle.rs                     |    7 +
  core/src/proxy/auth.rs                        |  185 ++
  core/src/proxy/block_engine_stage.rs          |  571 ++++++
  core/src/proxy/fetch_stage_manager.rs         |  170 ++
  core/src/proxy/mod.rs                         |  100 ++
  core/src/proxy/relayer_stage.rs               |  515 ++++++
- core/src/tip_manager.rs                       |  588 ++++++
+ core/src/tip_manager.rs                       |  593 +++++++
  core/src/tpu.rs                               |  113 +-
  core/src/tpu_entry_notifier.rs                |   66 +-
  core/src/tvu.rs                               |    3 +
@@ -423,7 +422,7 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  rpc-client/src/rpc_client.rs                  |   14 +
  rpc-test/Cargo.toml                           |    1 +
  rpc/Cargo.toml                                |    2 +
- rpc/src/rpc.rs                                |  489 ++++-
+ rpc/src/rpc.rs                                |  489 +++++-
  rpc/src/rpc_service.rs                        |    9 +-
  runtime-plugin/Cargo.toml                     |   22 +
  runtime-plugin/src/lib.rs                     |    4 +
@@ -449,7 +448,7 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  .../src/send_transaction_service.rs           |   47 +-
  start                                         |    9 +
  start_multi                                   |   30 +
- svm/src/account_loader.rs                     |    5 +
+ svm/src/account_loader.rs                     |   22 +-
  svm/src/account_overrides.rs                  |    6 +-
  svm/src/transaction_processor.rs              |    2 +-
  test-validator/src/lib.rs                     |    1 +
@@ -464,8 +463,8 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  .../src/merkle_root_generator_workflow.rs     |   54 +
  .../src/merkle_root_upload_workflow.rs        |  138 ++
  tip-distributor/src/reclaim_rent_workflow.rs  |  310 ++++
- .../src/stake_meta_generator_workflow.rs      |  973 ++++++++++
- transaction-status/src/lib.rs                 |    9 +-
+ .../src/stake_meta_generator_workflow.rs      |  973 +++++++++++
+ transaction-status/src/lib.rs                 |   12 +-
  turbine/benches/cluster_info.rs               |    1 +
  turbine/benches/retransmit_stage.rs           |    3 +-
  turbine/src/broadcast_stage.rs                |   51 +-
@@ -482,7 +481,7 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  validator/src/main.rs                         |  291 ++-
  version/src/lib.rs                            |    2 +-
  wen-restart/src/wen_restart.rs                |    4 +-
- 181 files changed, 17887 insertions(+), 870 deletions(-)
+ 180 files changed, 17830 insertions(+), 876 deletions(-)
  create mode 100644 .dockerignore
  create mode 100644 .github/workflows/rebase.yaml
  create mode 100644 .gitmodules
@@ -501,7 +500,6 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  create mode 100644 core/src/bundle_stage/bundle_stage_leader_metrics.rs
  create mode 100644 core/src/bundle_stage/committer.rs
  create mode 100644 core/src/bundle_stage/result.rs
- create mode 100644 core/src/consensus_cache_updater.rs
  create mode 100644 core/src/immutable_deserialized_bundle.rs
  create mode 100644 core/src/packet_bundle.rs
  create mode 100644 core/src/proxy/auth.rs
@@ -989,11 +987,11 @@ index 0000000000..e31fc7fccd
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index 8b37a0bfdd..e40f1620eb 100644
+index a54ec599b5..6c33455347 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -154,7 +154,7 @@ name = "agave-ledger-tool"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
   "assert_cmd",
 - "bs58",
@@ -1653,7 +1651,7 @@ index 8b37a0bfdd..e40f1620eb 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.18"
++version = "2.0.19"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -1985,7 +1983,7 @@ index 8b37a0bfdd..e40f1620eb 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.18"
++version = "2.0.19"
 +dependencies = [
 + "anchor-lang",
 + "assert_matches",
@@ -2007,8 +2005,8 @@ index 8b37a0bfdd..e40f1620eb 100644
 +
  [[package]]
  name = "solana-cargo-build-bpf"
- version = "2.0.18"
-@@ -5846,7 +6191,7 @@ version = "2.0.18"
+ version = "2.0.19"
+@@ -5846,7 +6191,7 @@ version = "2.0.19"
  dependencies = [
   "assert_matches",
   "bincode",
@@ -2018,7 +2016,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "console",
   "const_format",
 @@ -6060,10 +6405,11 @@ name = "solana-core"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -2080,7 +2078,7 @@ index 8b37a0bfdd..e40f1620eb 100644
  ]
  
 @@ -6286,7 +6642,7 @@ name = "solana-frozen-abi"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
   "bitflags 2.5.0",
 - "bs58",
@@ -2090,7 +2088,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "im",
 @@ -6306,8 +6662,8 @@ dependencies = [
  name = "solana-frozen-abi-macro"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2100,7 +2098,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "syn 2.0.66",
  ]
 @@ -6353,7 +6709,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -2110,7 +2108,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "jsonrpc-core",
 @@ -6437,7 +6793,7 @@ dependencies = [
  name = "solana-keygen"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2128,7 +2126,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "chrono-humanize",
 @@ -6702,8 +7058,8 @@ dependencies = [
  name = "solana-package-metadata-macro"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2146,7 +2144,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -6989,7 +7345,7 @@ version = "2.0.18"
+@@ -6989,7 +7345,7 @@ version = "2.0.19"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2180,7 +2178,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "crossbeam-channel",
   "futures 0.3.30",
   "indicatif",
-@@ -7080,7 +7438,7 @@ version = "2.0.18"
+@@ -7080,7 +7438,7 @@ version = "2.0.19"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -2201,7 +2199,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "solana-version",
   "thiserror",
 @@ -7119,13 +7479,14 @@ name = "solana-rpc-test"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2222,7 +2220,7 @@ index 8b37a0bfdd..e40f1620eb 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.18"
++version = "2.0.19"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -2240,10 +2238,10 @@ index 8b37a0bfdd..e40f1620eb 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.0.18"
+ version = "2.0.19"
 @@ -7247,12 +7626,14 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
 + "anchor-lang",
   "anyhow",
@@ -2259,7 +2257,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "byteorder",
 @@ -7305,9 +7686,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -2285,7 +2283,7 @@ index 8b37a0bfdd..e40f1620eb 100644
  ]
  
 @@ -7419,7 +7802,7 @@ name = "solana-storage-proto"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2299,7 +2297,7 @@ index 8b37a0bfdd..e40f1620eb 100644
  
 +[[package]]
 +name = "solana-tip-distributor"
-+version = "2.0.18"
++version = "2.0.19"
 +dependencies = [
 + "anchor-lang",
 + "clap 4.3.21",
@@ -2337,7 +2335,7 @@ index 8b37a0bfdd..e40f1620eb 100644
 +
  [[package]]
  name = "solana-tokens"
- version = "2.0.18"
+ version = "2.0.19"
 @@ -7685,7 +8106,7 @@ dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2349,7 +2347,7 @@ index 8b37a0bfdd..e40f1620eb 100644
   "serde",
 @@ -7900,7 +8321,7 @@ dependencies = [
  name = "solana-zk-keygen"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2687,7 +2685,7 @@ index 8b37a0bfdd..e40f1620eb 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index 7ba564a133..1f26b64f1d 100644
+index f43a0e7c2e..0e174fb422 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -19,6 +19,7 @@ members = [
@@ -2748,7 +2746,7 @@ index 7ba564a133..1f26b64f1d 100644
      "unprefixed_malloc_on_supported_platforms",
  ] }
  js-sys = "0.3.69"
-+jito-protos = { path = "jito-protos", version = "=2.0.18" }
++jito-protos = { path = "jito-protos", version = "=2.0.19" }
 +jito-tip-distribution = { path = "jito-programs/mev-programs/programs/tip-distribution", features = ["no-entrypoint"] }
 +jito-tip-payment = { path = "jito-programs/mev-programs/programs/tip-payment", features = ["no-entrypoint"] }
  json5 = "0.4.1"
@@ -2762,22 +2760,22 @@ index 7ba564a133..1f26b64f1d 100644
  lazy-lru = "0.1.2"
  lazy_static = "1.4.0"
  libc = "0.2.155"
-@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.18" }
- solana-bloom = { path = "bloom", version = "=2.0.18" }
- solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.18" }
- solana-bucket-map = { path = "bucket_map", version = "=2.0.18" }
-+solana-bundle = { path = "bundle", version = "=2.0.18" }
- agave-cargo-registry = { path = "cargo-registry", version = "=2.0.18" }
- solana-clap-utils = { path = "clap-utils", version = "=2.0.18" }
- solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.18" }
-@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.18", default-features
- solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.18" }
- solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.18" }
- solana-runtime = { path = "runtime", version = "=2.0.18" }
-+solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.18" }
- solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.18" }
- solana-sdk = { path = "sdk", version = "=2.0.18" }
- solana-sdk-macro = { path = "sdk/macro", version = "=2.0.18" }
+@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.19" }
+ solana-bloom = { path = "bloom", version = "=2.0.19" }
+ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.19" }
+ solana-bucket-map = { path = "bucket_map", version = "=2.0.19" }
++solana-bundle = { path = "bundle", version = "=2.0.19" }
+ agave-cargo-registry = { path = "cargo-registry", version = "=2.0.19" }
+ solana-clap-utils = { path = "clap-utils", version = "=2.0.19" }
+ solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.19" }
+@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.19", default-features
+ solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.19" }
+ solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.19" }
+ solana-runtime = { path = "runtime", version = "=2.0.19" }
++solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.19" }
+ solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.19" }
+ solana-sdk = { path = "sdk", version = "=2.0.19" }
+ solana-sdk-macro = { path = "sdk/macro", version = "=2.0.19" }
 diff --git a/README.md b/README.md
 index 0d855e8cc8..4369c4bcb4 100644
 --- a/README.md
@@ -3447,10 +3445,10 @@ index 0000000000..8ceaae0479
 +name = "solana_bundle"
 diff --git a/bundle/src/bundle_execution.rs b/bundle/src/bundle_execution.rs
 new file mode 100644
-index 0000000000..6e396c8513
+index 0000000000..d78d9eff8e
 --- /dev/null
 +++ b/bundle/src/bundle_execution.rs
-@@ -0,0 +1,1216 @@
+@@ -0,0 +1,1221 @@
 +use {
 +    itertools::izip,
 +    log::*,
@@ -3463,7 +3461,7 @@ index 0000000000..6e396c8513
 +        transaction_batch::TransactionBatch,
 +    },
 +    solana_sdk::{
-+        account::AccountSharedData,
++        account::{AccountSharedData, ReadableAccount},
 +        bundle::SanitizedBundle,
 +        nonce::state::DurableNonce,
 +        pubkey::Pubkey,
@@ -3481,6 +3479,7 @@ index 0000000000..6e396c8513
 +    solana_transaction_status::{token_balances::TransactionTokenBalances, PreBalanceInfo},
 +    std::{
 +        cmp::{max, min},
++        sync::Arc,
 +        time::{Duration, Instant},
 +    },
 +    thiserror::Error,
@@ -3677,7 +3676,7 @@ index 0000000000..6e396c8513
 +///   we should add in the BundleTransactionsOutput of A and C and return the error for B.
 +#[allow(clippy::too_many_arguments)]
 +pub fn load_and_execute_bundle<'a>(
-+    bank: &Bank,
++    bank: &Arc<Bank>,
 +    bundle: &'a SanitizedBundle,
 +    // Max blockhash age
 +    max_age: usize,
@@ -3903,7 +3902,11 @@ index 0000000000..6e396c8513
 +        )
 +        .0;
 +        for (pubkey, data) in accounts {
-+            account_overrides.set_account(pubkey, Some(data.clone()));
++            if data.lamports() == 0 {
++                account_overrides.set_account(pubkey, Some(AccountSharedData::default()));
++            } else {
++                account_overrides.set_account(pubkey, Some(data.clone()));
++            }
 +        }
 +        saturating_add_assign!(metrics.cache_accounts_us, m.end_as_us());
 +
@@ -7667,10 +7670,10 @@ index 0000000000..82070e3d3a
 +}
 diff --git a/core/src/bundle_stage/bundle_consumer.rs b/core/src/bundle_stage/bundle_consumer.rs
 new file mode 100644
-index 0000000000..b8d71edaf6
+index 0000000000..32b9327081
 --- /dev/null
 +++ b/core/src/bundle_stage/bundle_consumer.rs
-@@ -0,0 +1,1584 @@
+@@ -0,0 +1,1556 @@
 +use {
 +    crate::{
 +        banking_stage::{
@@ -7684,7 +7687,6 @@ index 0000000000..b8d71edaf6
 +            bundle_stage_leader_metrics::BundleStageLeaderMetrics,
 +            committer::Committer,
 +        },
-+        consensus_cache_updater::ConsensusCacheUpdater,
 +        immutable_deserialized_bundle::ImmutableDeserializedBundle,
 +        proxy::block_engine_stage::BlockBuilderFeeInfo,
 +        tip_manager::TipManager,
@@ -7726,8 +7728,6 @@ index 0000000000..b8d71edaf6
 +    qos_service: QosService,
 +    log_messages_bytes_limit: Option<usize>,
 +
-+    consensus_cache_updater: ConsensusCacheUpdater,
-+
 +    tip_manager: TipManager,
 +    last_tip_update_slot: Slot,
 +
@@ -7760,16 +7760,16 @@ index 0000000000..b8d71edaf6
 +        cluster_info: Arc<ClusterInfo>,
 +        reserved_space: BundleReservedSpaceManager,
 +    ) -> Self {
++        let blacklisted_accounts = HashSet::from_iter([tip_manager.tip_payment_program_id()]);
 +        Self {
 +            committer,
 +            transaction_recorder,
 +            qos_service,
 +            log_messages_bytes_limit,
-+            consensus_cache_updater: ConsensusCacheUpdater::default(),
 +            tip_manager,
 +            // MAX because sending tips during slot 0 in tests doesn't work
 +            last_tip_update_slot: u64::MAX,
-+            blacklisted_accounts: HashSet::default(),
++            blacklisted_accounts,
 +            bundle_account_locker,
 +            block_builder_fee_info,
 +            max_bundle_retry_duration,
@@ -7793,15 +7793,12 @@ index 0000000000..b8d71edaf6
 +    // A bundle is not allowed to call the Tip Payment program in a bundle (or BankingStage).
 +    // - This is to avoid stealing of tips by malicious parties with bundles that crank the tip
 +    // payment program and set the tip receiver to themself.
-+    // A bundle is not allowed to touch consensus-related accounts
-+    //  - This is to avoid stalling the voting BankingStage threads.
 +    pub fn consume_buffered_bundles(
 +        &mut self,
 +        bank_start: &BankStart,
 +        unprocessed_transaction_storage: &mut UnprocessedTransactionStorage,
 +        bundle_stage_leader_metrics: &mut BundleStageLeaderMetrics,
 +    ) {
-+        self.maybe_update_blacklist(bank_start);
 +        self.reserved_space.tick(&bank_start.working_bank);
 +
 +        let reached_end_of_slot = unprocessed_transaction_storage.process_bundles(
@@ -7834,28 +7831,6 @@ index 0000000000..b8d71edaf6
 +                .set_end_of_slot_unprocessed_buffer_len(
 +                    unprocessed_transaction_storage.len() as u64
 +                );
-+        }
-+    }
-+
-+    /// Blacklist is updated with the tip payment program + any consensus accounts.
-+    fn maybe_update_blacklist(&mut self, bank_start: &BankStart) {
-+        if self
-+            .consensus_cache_updater
-+            .maybe_update(&bank_start.working_bank)
-+        {
-+            self.blacklisted_accounts = self
-+                .consensus_cache_updater
-+                .consensus_accounts_cache()
-+                .union(&HashSet::from_iter([self
-+                    .tip_manager
-+                    .tip_payment_program_id()]))
-+                .cloned()
-+                .collect();
-+
-+            debug!(
-+                "updated blacklist with {} accounts",
-+                self.blacklisted_accounts.len()
-+            );
 +        }
 +    }
 +
@@ -11398,64 +11373,6 @@ index 0000000000..3370251791
 +        }
 +    }
 +}
-diff --git a/core/src/consensus_cache_updater.rs b/core/src/consensus_cache_updater.rs
-new file mode 100644
-index 0000000000..e1dc137ba0
---- /dev/null
-+++ b/core/src/consensus_cache_updater.rs
-@@ -0,0 +1,52 @@
-+use {
-+    solana_runtime::bank::Bank,
-+    solana_sdk::{clock::Epoch, pubkey::Pubkey},
-+    std::collections::HashSet,
-+};
-+
-+#[derive(Default)]
-+pub(crate) struct ConsensusCacheUpdater {
-+    last_epoch_updated: Epoch,
-+    consensus_accounts_cache: HashSet<Pubkey>,
-+}
-+
-+impl ConsensusCacheUpdater {
-+    pub(crate) fn consensus_accounts_cache(&self) -> &HashSet<Pubkey> {
-+        &self.consensus_accounts_cache
-+    }
-+
-+    /// Builds a HashSet of all consensus related accounts for the Bank's epoch
-+    fn get_consensus_accounts(bank: &Bank) -> HashSet<Pubkey> {
-+        let mut consensus_accounts: HashSet<Pubkey> = HashSet::new();
-+        if let Some(epoch_stakes) = bank.epoch_stakes(bank.epoch()) {
-+            // votes use the following accounts:
-+            // - vote_account pubkey: writeable
-+            // - authorized_voter_pubkey: read-only
-+            // - node_keypair pubkey: payer (writeable)
-+            let node_id_vote_accounts = epoch_stakes.node_id_to_vote_accounts();
-+
-+            let vote_accounts = node_id_vote_accounts
-+                .values()
-+                .flat_map(|v| v.vote_accounts.clone());
-+
-+            // vote_account
-+            consensus_accounts.extend(vote_accounts);
-+            // authorized_voter_pubkey
-+            consensus_accounts.extend(epoch_stakes.epoch_authorized_voters().keys());
-+            // node_keypair
-+            consensus_accounts.extend(epoch_stakes.node_id_to_vote_accounts().keys());
-+        }
-+        consensus_accounts
-+    }
-+
-+    /// Updates consensus-related accounts on epoch boundaries
-+    pub(crate) fn maybe_update(&mut self, bank: &Bank) -> bool {
-+        if bank.epoch() > self.last_epoch_updated {
-+            self.consensus_accounts_cache = Self::get_consensus_accounts(bank);
-+            self.last_epoch_updated = bank.epoch();
-+            true
-+        } else {
-+            false
-+        }
-+    }
-+}
 diff --git a/core/src/immutable_deserialized_bundle.rs b/core/src/immutable_deserialized_bundle.rs
 new file mode 100644
 index 0000000000..3411cd4967
@@ -11953,10 +11870,10 @@ index 0000000000..3411cd4967
 +    }
 +}
 diff --git a/core/src/lib.rs b/core/src/lib.rs
-index c6ab7b7e9c..9d6908b317 100644
+index c6ab7b7e9c..98a06bd62e 100644
 --- a/core/src/lib.rs
 +++ b/core/src/lib.rs
-@@ -12,20 +12,25 @@ pub mod accounts_hash_verifier;
+@@ -12,6 +12,7 @@ pub mod accounts_hash_verifier;
  pub mod admin_rpc_post_init;
  pub mod banking_stage;
  pub mod banking_trace;
@@ -11964,11 +11881,7 @@ index c6ab7b7e9c..9d6908b317 100644
  pub mod cache_block_meta_service;
  pub mod cluster_info_vote_listener;
  pub mod cluster_slots_service;
- pub mod commitment_service;
- pub mod completed_data_sets_service;
- pub mod consensus;
-+pub mod consensus_cache_updater;
- pub mod cost_update_service;
+@@ -22,10 +23,13 @@ pub mod cost_update_service;
  pub mod drop_bank_service;
  pub mod fetch_stage;
  pub mod gen_keys;
@@ -11982,7 +11895,7 @@ index c6ab7b7e9c..9d6908b317 100644
  pub mod repair;
  pub mod replay_stage;
  mod result;
-@@ -38,6 +43,7 @@ pub mod snapshot_packager_service;
+@@ -38,6 +42,7 @@ pub mod snapshot_packager_service;
  pub mod staked_nodes_updater_service;
  pub mod stats_reporter_service;
  pub mod system_monitor_service;
@@ -11990,7 +11903,7 @@ index c6ab7b7e9c..9d6908b317 100644
  pub mod tpu;
  mod tpu_entry_notifier;
  pub mod tracer_packet_stats;
-@@ -66,3 +72,47 @@ extern crate solana_frozen_abi_macro;
+@@ -66,3 +71,47 @@ extern crate solana_frozen_abi_macro;
  #[cfg(test)]
  #[macro_use]
  extern crate assert_matches;
@@ -13624,10 +13537,10 @@ index 0000000000..0c8ce22877
 +}
 diff --git a/core/src/tip_manager.rs b/core/src/tip_manager.rs
 new file mode 100644
-index 0000000000..397dfffea1
+index 0000000000..847d90321a
 --- /dev/null
 +++ b/core/src/tip_manager.rs
-@@ -0,0 +1,588 @@
+@@ -0,0 +1,593 @@
 +use {
 +    crate::proxy::block_engine_stage::BlockBuilderFeeInfo,
 +    anchor_lang::{AccountDeserialize, InstructionData, ToAccountMetas},
@@ -14178,9 +14091,14 @@ index 0000000000..397dfffea1
 +            None
 +        };
 +
-+        let configured_tip_receiver = self.get_configured_tip_receiver(bank)?;
++        let tip_payment_config = self.get_tip_payment_config_account(bank)?;
++
 +        let my_tip_receiver = self.get_my_tip_distribution_pda(bank.epoch());
-+        let maybe_change_tip_receiver_tx = if configured_tip_receiver != my_tip_receiver {
++        let maybe_change_tip_receiver_tx = if tip_payment_config.tip_receiver != my_tip_receiver
++            || tip_payment_config.block_builder != block_builder_fee_info.block_builder
++            || tip_payment_config.block_builder_commission_pct
++                != block_builder_fee_info.block_builder_commission
++        {
 +            debug!("change_tip_receiver=true");
 +            Some(self.change_tip_receiver_and_block_builder_tx(
 +                &my_tip_receiver,
@@ -15614,7 +15532,7 @@ index a79645e428..e195ac1cb6 100644
  
              let bank = bank_forks.read().unwrap().working_bank();
 diff --git a/ledger-tool/src/ledger_utils.rs b/ledger-tool/src/ledger_utils.rs
-index 30f1d77a68..5f55dce4eb 100644
+index 0ff1384bc4..9122685f8a 100644
 --- a/ledger-tool/src/ledger_utils.rs
 +++ b/ledger-tool/src/ledger_utils.rs
 @@ -112,6 +112,7 @@ pub fn load_and_process_ledger_or_exit(
@@ -15673,7 +15591,7 @@ index 30f1d77a68..5f55dce4eb 100644
                  )
                  .unwrap_or_default();
              starting_slot = std::cmp::max(full_snapshot_slot, incremental_snapshot_slot);
-@@ -294,6 +305,7 @@ pub fn load_and_process_ledger(
+@@ -332,6 +343,7 @@ pub fn load_and_process_ledger(
              None, // Maybe support this later, though
              accounts_update_notifier,
              exit.clone(),
@@ -21488,7 +21406,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index 00ee93c676..a9a4a60f2c 100644
+index ec3ce0f4ce..752b87dd09 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -123,6 +123,7 @@ dependencies = [
@@ -21992,7 +21910,7 @@ index 00ee93c676..a9a4a60f2c 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.18"
++version = "2.0.19"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -22313,7 +22231,7 @@ index 00ee93c676..a9a4a60f2c 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.18"
++version = "2.0.19"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -22334,9 +22252,9 @@ index 00ee93c676..a9a4a60f2c 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.0.18"
+ version = "2.0.19"
 @@ -4832,9 +5111,10 @@ name = "solana-core"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -22391,7 +22309,7 @@ index 00ee93c676..a9a4a60f2c 100644
  ]
  
 @@ -5005,7 +5294,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -22408,7 +22326,7 @@ index 00ee93c676..a9a4a60f2c 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -5454,7 +5743,7 @@ version = "2.0.18"
+@@ -5454,7 +5743,7 @@ version = "2.0.19"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -22442,7 +22360,7 @@ index 00ee93c676..a9a4a60f2c 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -5536,7 +5827,7 @@ version = "2.0.18"
+@@ -5536,7 +5827,7 @@ version = "2.0.19"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -22468,7 +22386,7 @@ index 00ee93c676..a9a4a60f2c 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.18"
++version = "2.0.19"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -22486,10 +22404,10 @@ index 00ee93c676..a9a4a60f2c 100644
 +
  [[package]]
  name = "solana-sbf-programs"
- version = "2.0.18"
+ version = "2.0.19"
 @@ -6102,10 +6413,12 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
 + "anchor-lang",
 + "base64 0.22.1",
@@ -22503,7 +22421,7 @@ index 00ee93c676..a9a4a60f2c 100644
   "byteorder 1.5.0",
 @@ -6150,9 +6463,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -22523,7 +22441,7 @@ index 00ee93c676..a9a4a60f2c 100644
   "solana-metrics",
   "solana-runtime",
 @@ -6229,7 +6543,7 @@ name = "solana-storage-proto"
- version = "2.0.18"
+ version = "2.0.19"
  dependencies = [
   "bincode",
 - "bs58",
@@ -25553,28 +25471,52 @@ index 0000000000..66de0032dc
 +cargo run --bin solana-ledger-tool -- -l config/bootstrap-validator/ create-snapshot 0
 +NDEBUG=1 ./multinode-demo/faucet.sh
 diff --git a/svm/src/account_loader.rs b/svm/src/account_loader.rs
-index f11fc00287..8c58736aa0 100644
+index f11fc00287..67f1b18673 100644
 --- a/svm/src/account_loader.rs
 +++ b/svm/src/account_loader.rs
-@@ -6,6 +6,7 @@ use {
-         transaction_processing_callback::TransactionProcessingCallback,
-     },
-     itertools::Itertools,
-+    log::info,
-     solana_compute_budget::compute_budget_processor::{
-         process_compute_budget_instructions, ComputeBudgetLimits,
-     },
-@@ -240,6 +241,10 @@ fn load_transaction_accounts<CB: TransactionProcessingCallback>(
+@@ -189,6 +189,15 @@ pub(crate) fn load_accounts<CB: TransactionProcessingCallback>(
+         .collect()
+ }
+ 
++fn create_new_account() -> AccountSharedData {
++    let mut default_account = AccountSharedData::default();
++    // All new accounts must be rent-exempt (enforced in Bank::execute_loaded_transaction).
++    // Currently, rent collection sets rent_epoch to u64::MAX, but initializing the account
++    // with this field already set would allow us to skip rent collection for these accounts.
++    default_account.set_rent_epoch(RENT_EXEMPT_RENT_EPOCH);
++    default_account
++}
++
+ fn load_transaction_accounts<CB: TransactionProcessingCallback>(
+     callbacks: &CB,
+     message: &SanitizedMessage,
+@@ -240,7 +249,12 @@ fn load_transaction_accounts<CB: TransactionProcessingCallback>(
                  } else if let Some(account_override) =
                      account_overrides.and_then(|overrides| overrides.get(key))
                  {
-+                    info!(
-+                        "loaded account from cache key: {:?} override: {:?}",
-+                        key, account_override
-+                    );
-                     (account_override.data().len(), account_override.clone(), 0)
+-                    (account_override.data().len(), account_override.clone(), 0)
++                    if account_override.lamports() == 0 {
++                        let default_account = create_new_account();
++                        (default_account.data().len(), default_account, 0)
++                    } else {
++                        (account_override.data().len(), account_override.clone(), 0)
++                    }
                  } else if let Some(program) = (!disable_account_loader_special_case
                      && !instruction_account
+                     && !message.is_writable(i))
+@@ -271,11 +285,7 @@ fn load_transaction_accounts<CB: TransactionProcessingCallback>(
+                         })
+                         .unwrap_or_else(|| {
+                             account_found = false;
+-                            let mut default_account = AccountSharedData::default();
+-                            // All new accounts must be rent-exempt (enforced in Bank::execute_loaded_transaction).
+-                            // Currently, rent collection sets rent_epoch to u64::MAX, but initializing the account
+-                            // with this field already set would allow us to skip rent collection for these accounts.
+-                            default_account.set_rent_epoch(RENT_EXEMPT_RENT_EPOCH);
++                            let default_account = create_new_account();
+                             (default_account.data().len(), default_account, 0)
+                         })
+                 };
 diff --git a/svm/src/account_overrides.rs b/svm/src/account_overrides.rs
 index 8a205a798f..b92ba7d0ad 100644
 --- a/svm/src/account_overrides.rs
@@ -29088,19 +29030,22 @@ index 0000000000..9616154c09
 +    }
 +}
 diff --git a/transaction-status/src/lib.rs b/transaction-status/src/lib.rs
-index 6a5eb5fb8d..67a8a4ba76 100644
+index 76f7e277c1..b3cce3c558 100644
 --- a/transaction-status/src/lib.rs
 +++ b/transaction-status/src/lib.rs
-@@ -27,7 +27,7 @@ use {
+@@ -27,7 +27,10 @@ use {
          },
          transaction_context::TransactionReturnData,
      },
--    std::fmt,
-+    std::{collections::HashMap, fmt},
+-    std::{collections::HashSet, fmt},
++    std::{
++        collections::{HashMap, HashSet},
++        fmt,
++    },
      thiserror::Error,
  };
  
-@@ -301,6 +301,13 @@ impl From<InnerInstructions> for UiInnerInstructions {
+@@ -301,6 +304,13 @@ impl From<InnerInstructions> for UiInnerInstructions {
      }
  }
  
