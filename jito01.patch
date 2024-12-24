@@ -332,7 +332,6 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  ci/buildkite-solana-private.sh                |    4 +-
  ci/channel-info.sh                            |    2 +-
  ci/check-crates.sh                            |    3 +
- ci/do-audit.sh                                |   11 +
  ci/publish-installer.sh                       |   16 +-
  ci/publish-tarball.sh                         |    8 +-
  ci/test-coverage.sh                           |    2 +-
@@ -992,7 +991,7 @@ index a54ec599b5..6c33455347 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -154,7 +154,7 @@ name = "agave-ledger-tool"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
   "assert_cmd",
 - "bs58",
@@ -1652,7 +1651,7 @@ index a54ec599b5..6c33455347 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.19"
++version = "2.0.21"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -1984,7 +1983,7 @@ index a54ec599b5..6c33455347 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.19"
++version = "2.0.21"
 +dependencies = [
 + "anchor-lang",
 + "assert_matches",
@@ -2006,8 +2005,8 @@ index a54ec599b5..6c33455347 100644
 +
  [[package]]
  name = "solana-cargo-build-bpf"
- version = "2.0.19"
-@@ -5846,7 +6191,7 @@ version = "2.0.19"
+ version = "2.0.21"
+@@ -5846,7 +6191,7 @@ version = "2.0.21"
  dependencies = [
   "assert_matches",
   "bincode",
@@ -2017,7 +2016,7 @@ index a54ec599b5..6c33455347 100644
   "console",
   "const_format",
 @@ -6060,10 +6405,11 @@ name = "solana-core"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -2079,7 +2078,7 @@ index a54ec599b5..6c33455347 100644
  ]
  
 @@ -6286,7 +6642,7 @@ name = "solana-frozen-abi"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
   "bitflags 2.5.0",
 - "bs58",
@@ -2089,7 +2088,7 @@ index a54ec599b5..6c33455347 100644
   "im",
 @@ -6306,8 +6662,8 @@ dependencies = [
  name = "solana-frozen-abi-macro"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2099,7 +2098,7 @@ index a54ec599b5..6c33455347 100644
   "syn 2.0.66",
  ]
 @@ -6353,7 +6709,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -2109,7 +2108,7 @@ index a54ec599b5..6c33455347 100644
   "jsonrpc-core",
 @@ -6437,7 +6793,7 @@ dependencies = [
  name = "solana-keygen"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2127,7 +2126,7 @@ index a54ec599b5..6c33455347 100644
   "chrono-humanize",
 @@ -6702,8 +7058,8 @@ dependencies = [
  name = "solana-package-metadata-macro"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2145,7 +2144,7 @@ index a54ec599b5..6c33455347 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -6989,7 +7345,7 @@ version = "2.0.19"
+@@ -6989,7 +7345,7 @@ version = "2.0.21"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2179,7 +2178,7 @@ index a54ec599b5..6c33455347 100644
   "crossbeam-channel",
   "futures 0.3.30",
   "indicatif",
-@@ -7080,7 +7438,7 @@ version = "2.0.19"
+@@ -7080,7 +7438,7 @@ version = "2.0.21"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -2200,7 +2199,7 @@ index a54ec599b5..6c33455347 100644
   "solana-version",
   "thiserror",
 @@ -7119,13 +7479,14 @@ name = "solana-rpc-test"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2221,7 +2220,7 @@ index a54ec599b5..6c33455347 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.19"
++version = "2.0.21"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -2239,10 +2238,10 @@ index a54ec599b5..6c33455347 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.0.19"
+ version = "2.0.21"
 @@ -7247,12 +7626,14 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
 + "anchor-lang",
   "anyhow",
@@ -2258,7 +2257,7 @@ index a54ec599b5..6c33455347 100644
   "byteorder",
 @@ -7305,9 +7686,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -2284,7 +2283,7 @@ index a54ec599b5..6c33455347 100644
  ]
  
 @@ -7419,7 +7802,7 @@ name = "solana-storage-proto"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2298,7 +2297,7 @@ index a54ec599b5..6c33455347 100644
  
 +[[package]]
 +name = "solana-tip-distributor"
-+version = "2.0.19"
++version = "2.0.21"
 +dependencies = [
 + "anchor-lang",
 + "clap 4.3.21",
@@ -2336,7 +2335,7 @@ index a54ec599b5..6c33455347 100644
 +
  [[package]]
  name = "solana-tokens"
- version = "2.0.19"
+ version = "2.0.21"
 @@ -7685,7 +8106,7 @@ dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2348,7 +2347,7 @@ index a54ec599b5..6c33455347 100644
   "serde",
 @@ -7900,7 +8321,7 @@ dependencies = [
  name = "solana-zk-keygen"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2747,7 +2746,7 @@ index f43a0e7c2e..0e174fb422 100644
      "unprefixed_malloc_on_supported_platforms",
  ] }
  js-sys = "0.3.69"
-+jito-protos = { path = "jito-protos", version = "=2.0.19" }
++jito-protos = { path = "jito-protos", version = "=2.0.21" }
 +jito-tip-distribution = { path = "jito-programs/mev-programs/programs/tip-distribution", features = ["no-entrypoint"] }
 +jito-tip-payment = { path = "jito-programs/mev-programs/programs/tip-payment", features = ["no-entrypoint"] }
  json5 = "0.4.1"
@@ -2761,22 +2760,22 @@ index f43a0e7c2e..0e174fb422 100644
  lazy-lru = "0.1.2"
  lazy_static = "1.4.0"
  libc = "0.2.155"
-@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.19" }
- solana-bloom = { path = "bloom", version = "=2.0.19" }
- solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.19" }
- solana-bucket-map = { path = "bucket_map", version = "=2.0.19" }
-+solana-bundle = { path = "bundle", version = "=2.0.19" }
- agave-cargo-registry = { path = "cargo-registry", version = "=2.0.19" }
- solana-clap-utils = { path = "clap-utils", version = "=2.0.19" }
- solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.19" }
-@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.19", default-features
- solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.19" }
- solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.19" }
- solana-runtime = { path = "runtime", version = "=2.0.19" }
-+solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.19" }
- solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.19" }
- solana-sdk = { path = "sdk", version = "=2.0.19" }
- solana-sdk-macro = { path = "sdk/macro", version = "=2.0.19" }
+@@ -330,6 +344,7 @@ solana-bench-tps = { path = "bench-tps", version = "=2.0.21" }
+ solana-bloom = { path = "bloom", version = "=2.0.21" }
+ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.0.21" }
+ solana-bucket-map = { path = "bucket_map", version = "=2.0.21" }
++solana-bundle = { path = "bundle", version = "=2.0.21" }
+ agave-cargo-registry = { path = "cargo-registry", version = "=2.0.21" }
+ solana-clap-utils = { path = "clap-utils", version = "=2.0.21" }
+ solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.0.21" }
+@@ -384,6 +399,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.0.21", default-features
+ solana-rpc-client-api = { path = "rpc-client-api", version = "=2.0.21" }
+ solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.0.21" }
+ solana-runtime = { path = "runtime", version = "=2.0.21" }
++solana-runtime-plugin = { path = "runtime-plugin", version = "=2.0.21" }
+ solana-runtime-transaction = { path = "runtime-transaction", version = "=2.0.21" }
+ solana-sdk = { path = "sdk", version = "=2.0.21" }
+ solana-sdk-macro = { path = "sdk/macro", version = "=2.0.21" }
 diff --git a/README.md b/README.md
 index 0d855e8cc8..4369c4bcb4 100644
 --- a/README.md
@@ -4900,28 +4899,6 @@ index 4f407824a3..802fe7b63c 100755
    echo "=== $crate_name ($file) ==="
  
    if [[ $package_publish = 'false' ]]; then
-diff --git a/ci/do-audit.sh b/ci/do-audit.sh
-index aca50d122f..0e63dcef22 100755
---- a/ci/do-audit.sh
-+++ b/ci/do-audit.sh
-@@ -34,6 +34,17 @@ cargo_audit_ignores=(
-   # curve25519-dalek
-   --ignore RUSTSEC-2024-0344
- 
-+  # Crate:     idna
-+  # Version:   0.1.5
-+  # Title:     `idna` accepts Punycode labels that do not produce any non-ASCII when decoded
-+  # Date:      2024-12-09
-+  # ID:        RUSTSEC-2024-0421
-+  # URL:       https://rustsec.org/advisories/RUSTSEC-2024-0421
-+  # Solution:  Upgrade to >=1.0.0
-+  # need to solve this depentant tree:
-+  # jsonrpc-core-client v18.0.0 -> jsonrpc-client-transports v18.0.0 -> url v1.7.2 -> idna v0.1.5
-+  --ignore RUSTSEC-2024-0421
-+
-   # tonic
-   # When using tonic::transport::Server there is a remote DoS attack that can cause
-   # the server to exit cleanly on accepting a tcp/tls stream.
 diff --git a/ci/publish-installer.sh b/ci/publish-installer.sh
 index f7d98ffd5d..2caf990037 100755
 --- a/ci/publish-installer.sh
@@ -21933,7 +21910,7 @@ index ec3ce0f4ce..752b87dd09 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.0.19"
++version = "2.0.21"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -22254,7 +22231,7 @@ index ec3ce0f4ce..752b87dd09 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.0.19"
++version = "2.0.21"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -22275,9 +22252,9 @@ index ec3ce0f4ce..752b87dd09 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.0.19"
+ version = "2.0.21"
 @@ -4832,9 +5111,10 @@ name = "solana-core"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
   "ahash 0.8.10",
 + "anchor-lang",
@@ -22332,7 +22309,7 @@ index ec3ce0f4ce..752b87dd09 100644
  ]
  
 @@ -5005,7 +5294,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -22349,7 +22326,7 @@ index ec3ce0f4ce..752b87dd09 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -5454,7 +5743,7 @@ version = "2.0.19"
+@@ -5454,7 +5743,7 @@ version = "2.0.21"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -22383,7 +22360,7 @@ index ec3ce0f4ce..752b87dd09 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -5536,7 +5827,7 @@ version = "2.0.19"
+@@ -5536,7 +5827,7 @@ version = "2.0.21"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -22409,7 +22386,7 @@ index ec3ce0f4ce..752b87dd09 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.0.19"
++version = "2.0.21"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -22427,10 +22404,10 @@ index ec3ce0f4ce..752b87dd09 100644
 +
  [[package]]
  name = "solana-sbf-programs"
- version = "2.0.19"
+ version = "2.0.21"
 @@ -6102,10 +6413,12 @@ dependencies = [
  name = "solana-sdk"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
 + "anchor-lang",
 + "base64 0.22.1",
@@ -22444,7 +22421,7 @@ index ec3ce0f4ce..752b87dd09 100644
   "byteorder 1.5.0",
 @@ -6150,9 +6463,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -22464,7 +22441,7 @@ index ec3ce0f4ce..752b87dd09 100644
   "solana-metrics",
   "solana-runtime",
 @@ -6229,7 +6543,7 @@ name = "solana-storage-proto"
- version = "2.0.19"
+ version = "2.0.21"
  dependencies = [
   "bincode",
 - "bs58",
