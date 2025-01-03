@@ -1,4 +1,4 @@
-From 38d0b37b04fc2c901539db3a608b3ca053af9535 Mon Sep 17 00:00:00 2001
+From 5e0e15d1d6c3847db2a0c2dfeedf09beffd032b1 Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Thu, 25 Aug 2022 17:18:46 -0500
 Subject: [PATCH] jito patch only reroute if relayer connected (#123) feat: add
@@ -481,7 +481,7 @@ Backport: Separate out broadcast + retransmit shredstream (#703) (#704)
  validator/src/main.rs                         |  291 ++-
  version/src/lib.rs                            |    2 +-
  wen-restart/src/wen_restart.rs                |    4 +-
- 181 files changed, 17841 insertions(+), 876 deletions(-)
+ 180 files changed, 17830 insertions(+), 876 deletions(-)
  create mode 100644 .dockerignore
  create mode 100644 .github/workflows/rebase.yaml
  create mode 100644 .gitmodules
@@ -987,7 +987,7 @@ index 0000000000..e31fc7fccd
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index a54ec599b5..6c33455347 100644
+index 11d76f5de4..8c695b33a1 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -154,7 +154,7 @@ name = "agave-ledger-tool"
@@ -2685,7 +2685,7 @@ index a54ec599b5..6c33455347 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index f43a0e7c2e..0e174fb422 100644
+index 3ad09b557e..c10f9deef1 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -19,6 +19,7 @@ members = [
@@ -21406,7 +21406,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index ec3ce0f4ce..752b87dd09 100644
+index af66213935..a3062cced3 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -123,6 +123,7 @@ dependencies = [
@@ -29408,7 +29408,7 @@ index e9ed6a1a6e..c0fa09ce7d 100644
      }
      fn record(&mut self, receiver: &RecordReceiver, blockstore: &Blockstore) -> Result<()> {
 diff --git a/turbine/src/broadcast_stage/standard_broadcast_run.rs b/turbine/src/broadcast_stage/standard_broadcast_run.rs
-index 22e000e2af..d1e042a47f 100644
+index 6ef11ff3cc..12c757a14b 100644
 --- a/turbine/src/broadcast_stage/standard_broadcast_run.rs
 +++ b/turbine/src/broadcast_stage/standard_broadcast_run.rs
 @@ -17,7 +17,7 @@ use {
