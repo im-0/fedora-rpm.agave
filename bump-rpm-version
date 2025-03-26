@@ -19,9 +19,6 @@ _HTTP_TIMEOUT = 15  # seconds
 
 _DOWNLOADABLE_SOURCE_FILE_PATTERNS = [
     'agave-*.*.*.tar.gz',
-    'agave-crossbeam-*.tar.gz',
-    'solana-tokio-*.tar.gz',
-    'curve25519-dalek-*.tar.gz',
     'rust-*-*-unknown-linux-gnu.tar.gz',
 ]
 _GENERATED_SOURCE_FILE_PATTERNS = [
@@ -45,9 +42,6 @@ class _Patches(typing.NamedTuple):
 class _Config(typing.NamedTuple):
     old_version: str
     new_version: str
-    crossbeam_commit: str
-    tokio_commit: str
-    curve25519_dalek_commit: str
     rust_version: str
     author: str
 
@@ -150,30 +144,9 @@ def _main() -> None:
     # Do not apply some patches during vendoring phase.
     skip_patches = set()
 
-    if _ver_gt_e(new_version, '1.15.0'):
-        crossbeam_commit = _find_spec_global(spec, 'agave_crossbeam_commit')
-        skip_patches.add('0002-Manually-vendor-the-patched-crossbeam.patch')
-    else:
-        crossbeam_commit = ''
-
-    if _ver_gt_e(new_version, '1.17.10'):
-        tokio_commit = _find_spec_global(spec, 'agave_tokio_commit')
-        skip_patches.add('0003-Manually-vendor-the-patched-tokio.patch')
-    else:
-        tokio_commit = ''
-
-    if _ver_gt_e(new_version, '1.18.0'):
-        curve25519_dalek_commit = _find_spec_global(spec, 'agave_curve25519_dalek_commit')
-        skip_patches.add('0004-Manually-vendor-the-patched-curve25519-dalek.patch')
-    else:
-        curve25519_dalek_commit = ''
-
     config = _Config(
         old_version=old_version,
         new_version=new_version,
-        crossbeam_commit=crossbeam_commit,
-        tokio_commit=tokio_commit,
-        curve25519_dalek_commit=curve25519_dalek_commit,
         rust_version=_find_spec_global(spec, 'rust_version'),
         author=author)
     print('Configuration:')
@@ -378,13 +351,6 @@ def _generate_urls(conf: _Config) -> list[str]:
     urls = [
         f'https://github.com/anza-xyz/agave/archive/v{conf.new_version}/agave-{conf.new_version}.tar.gz',
     ]
-
-    if conf.crossbeam_commit:
-        urls.append(f'https://github.com/anza-xyz/crossbeam/archive/{conf.crossbeam_commit}/agave-crossbeam-{conf.crossbeam_commit}.tar.gz')
-    if conf.tokio_commit:
-        urls.append(f'https://github.com/anza-xyz/solana-tokio/archive/{conf.tokio_commit}/solana-tokio-{conf.tokio_commit}.tar.gz')
-    if conf.curve25519_dalek_commit:
-        urls.append(f'https://github.com/anza-xyz/curve25519-dalek/archive/{conf.curve25519_dalek_commit}/curve25519-dalek-{conf.curve25519_dalek_commit}.tar.gz')
 
     for rust_arch in 'x86_64', 'aarch64':
         urls.append(f'https://static.rust-lang.org/dist/rust-{conf.rust_version}-{rust_arch}-unknown-linux-gnu.tar.gz')
@@ -601,10 +567,12 @@ def _vendor(conf: _Config, patches: _Patches, skip_patches: set[str]) -> None:
             'cargo',
             'vendor',
         ]
-        subprocess.check_call(
+        cargo_config_toml = subprocess.check_output(
             cmd,
             stdin=subprocess.DEVNULL,
             cwd=tmp_src_root)
+        with open('config.toml', 'wb') as cargo_config_toml_f:
+            cargo_config_toml_f.write(cargo_config_toml)
 
         # Git submodules.
         git_submodules = []

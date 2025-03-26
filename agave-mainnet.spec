@@ -1,7 +1,4 @@
 %global agave_suffix mainnet
-%global agave_crossbeam_commit fd279d707025f0e60951e429bf778b4813d1b6bf
-%global agave_tokio_commit 7cf47705faacf7bf0e43e4131a5377b3291fce21
-%global agave_curve25519_dalek_commit b500cdc2a920cd5bff9e2dd974d7b97349d61464
 
 %global agave_user   agave-%{agave_suffix}
 %global agave_group  agave-%{agave_suffix}
@@ -10,7 +7,7 @@
 %global agave_etc    %{_sysconfdir}/agave/%{agave_suffix}/
 
 # See ${AGAVE_SRC}/rust-toolchain.toml or ${AGAVE_SRC}/ci/rust-version.sh
-%global rust_version 1.78.0
+%global rust_version 1.81.0
 
 # Used only on x86_64:
 #
@@ -26,7 +23,7 @@
 
 Name:       agave-%{agave_suffix}
 # git 843c6a1ac37ff1554b6415856b3ac4e0c1004277
-Version:    2.0.21
+Version:    2.1.16
 Release:    100jito%{?dist}
 Summary:    Solana/Agave blockchain software (%{agave_suffix} version)
 
@@ -41,18 +38,6 @@ Source0:    https://github.com/anza-xyz/agave/archive/v%{version}/agave-%{versio
 #     $ tar vcJf agave-X.Y.Z.cargo-vendor.tar.xz agave-X.Y.Z
 Source1:    agave-%{version}.cargo-vendor.tar.xz
 
-# Crossbeam patched by Agave developers.
-# `cargo vendor` does not support this properly: https://github.com/rust-lang/cargo/issues/9172.
-Source2:    https://github.com/anza-xyz/crossbeam/archive/%{agave_crossbeam_commit}/agave-crossbeam-%{agave_crossbeam_commit}.tar.gz
-
-# Tokio patched by Agave developers.
-# `cargo vendor` does not support this properly: https://github.com/rust-lang/cargo/issues/9172.
-Source3:    https://github.com/anza-xyz/solana-tokio/archive/%{agave_tokio_commit}/solana-tokio-%{agave_tokio_commit}.tar.gz
-
-# curve25519-dalek patched by Agave developers.
-# `cargo vendor` does not support this properly: https://github.com/rust-lang/cargo/issues/9172.
-Source4:    https://github.com/anza-xyz/curve25519-dalek/archive/%{agave_curve25519_dalek_commit}/curve25519-dalek-%{agave_curve25519_dalek_commit}.tar.gz
-
 Source102:  config.toml
 Source103:  activate
 Source104:  agave-validator.service
@@ -65,10 +50,6 @@ Source300:  https://static.rust-lang.org/dist/rust-%{rust_version}-x86_64-unknow
 Source301:  https://static.rust-lang.org/dist/rust-%{rust_version}-aarch64-unknown-linux-gnu.tar.gz
 
 Patch1001: jito01.patch
-
-Patch2002: 0002-Manually-vendor-the-patched-crossbeam.patch
-Patch2003: 0003-Manually-vendor-the-patched-tokio.patch
-Patch2004: 0004-Manually-vendor-the-patched-curve25519-dalek.patch
 
 ExclusiveArch:  x86_64 aarch64
 
@@ -183,9 +164,6 @@ Solana/Agave tests and benchmarks (%{agave_suffix} version).
 %prep
 %setup -q -D -T -b0 -n agave-%{version}
 # We do not extract vendored sources here, check below.
-%setup -q -D -T -b2 -n agave-%{version}
-%setup -q -D -T -b3 -n agave-%{version}
-%setup -q -D -T -b4 -n agave-%{version}
 
 %ifarch x86_64
 %setup -q -D -T -b300 -n agave-%{version}
@@ -208,16 +186,6 @@ git am %{PATCH1001}
 # Extract vendored sources after applying Jito patch because it contains
 # git modules.
 %setup -q -D -T -b1 -n agave-%{version}
-
-# Apply all other patches.
-%patch -P 2002 -p1
-ln -sv ../crossbeam-%{agave_crossbeam_commit} ./agave-crossbeam
-
-%patch -P 2003 -p1
-ln -sv ../solana-tokio-%{agave_tokio_commit} ./solana-tokio
-
-%patch -P 2004 -p1
-ln -sv ../curve25519-dalek-%{agave_curve25519_dalek_commit} ./curve25519-dalek
 
 mkdir .cargo
 cp %{SOURCE102} .cargo/config.toml
@@ -330,9 +298,8 @@ rm ./target/release/*.rlib
 # Excluded because we do not need installers.
 rm \
         ./target/release/agave-install \
-        ./target/release/agave-install-init \
-        ./target/release/solana-ledger-udev
-# Excluded. 
+        ./target/release/agave-install-init
+# Excluded.
 # TODO: Why? Official binary release does not contain these, only libagave_*_program.so installed.
 rm \
         ./target/release/libsolana_frozen_abi_macro.so \
@@ -397,9 +364,9 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 /opt/agave/%{agave_suffix}/bin/solana-merkle-root-generator
 /opt/agave/%{agave_suffix}/bin/solana-merkle-root-uploader
 /opt/agave/%{agave_suffix}/bin/solana-gossip
-/opt/agave/%{agave_suffix}/bin/solana-ip-address
 /opt/agave/%{agave_suffix}/bin/solana-log-analyzer
 /opt/agave/%{agave_suffix}/bin/solana-genesis
+/opt/agave/%{agave_suffix}/bin/agave-store-histogram
 
 
 %files deps
@@ -415,7 +382,6 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 %dir /opt/agave/%{agave_suffix}
 %dir /opt/agave/%{agave_suffix}/bin
 /opt/agave/%{agave_suffix}/bin/solana-faucet
-/opt/agave/%{agave_suffix}/bin/solana-ip-address-server
 /opt/agave/%{agave_suffix}/bin/agave-validator
 /opt/agave/%{agave_suffix}/bin/agave-watchtower
 /opt/agave/%{agave_suffix}/bin/agave-accounts-hash-cache-tool
@@ -444,8 +410,6 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 %dir /opt/agave
 %dir /opt/agave/%{agave_suffix}
 %dir /opt/agave/%{agave_suffix}/bin
-/opt/agave/%{agave_suffix}/bin/cargo-build-bpf
-/opt/agave/%{agave_suffix}/bin/cargo-test-bpf
 /opt/agave/%{agave_suffix}/bin/rbpf-cli
 
 
