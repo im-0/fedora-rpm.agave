@@ -1,5 +1,10 @@
 [source.crates-io]
 replace-with = "vendored-sources"
 
+[source."git+https://github.com/anza-xyz/crossbeam?rev=fd279d707025f0e60951e429bf778b4813d1b6bf"]
+git = "https://github.com/anza-xyz/crossbeam"
+rev = "fd279d707025f0e60951e429bf778b4813d1b6bf"
+replace-with = "vendored-sources"
+
 [source.vendored-sources]
 directory = "vendor"

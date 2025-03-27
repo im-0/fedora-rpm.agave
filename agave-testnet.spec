@@ -10,7 +10,7 @@
 %global agave_etc    %{_sysconfdir}/agave/%{agave_suffix}/
 
 # See ${AGAVE_SRC}/rust-toolchain.toml or ${AGAVE_SRC}/ci/rust-version.sh
-%global rust_version 1.78.0
+%global rust_version 1.84.1
 
 # Used only on x86_64:
 #
@@ -26,7 +26,7 @@
 
 Name:       agave-%{agave_suffix}
 # git f5a88ce9045ce204bb4c7495d597d2417ee861c2
-Version:    2.0.16
+Version:    2.2.4
 Release:    1jito%{?dist}
 Summary:    Solana/Agave blockchain software (%{agave_suffix} version)
 
@@ -41,18 +41,6 @@ Source0:    https://github.com/anza-xyz/agave/archive/v%{version}/agave-%{versio
 #     $ tar vcJf agave-X.Y.Z.cargo-vendor.tar.xz agave-X.Y.Z
 Source1:    agave-%{version}.cargo-vendor.tar.xz
 
-# Crossbeam patched by Agave developers.
-# `cargo vendor` does not support this properly: https://github.com/rust-lang/cargo/issues/9172.
-Source2:    https://github.com/anza-xyz/crossbeam/archive/%{agave_crossbeam_commit}/agave-crossbeam-%{agave_crossbeam_commit}.tar.gz
-
-# Tokio patched by Agave developers.
-# `cargo vendor` does not support this properly: https://github.com/rust-lang/cargo/issues/9172.
-Source3:    https://github.com/anza-xyz/solana-tokio/archive/%{agave_tokio_commit}/solana-tokio-%{agave_tokio_commit}.tar.gz
-
-# curve25519-dalek patched by Agave developers.
-# `cargo vendor` does not support this properly: https://github.com/rust-lang/cargo/issues/9172.
-Source4:    https://github.com/anza-xyz/curve25519-dalek/archive/%{agave_curve25519_dalek_commit}/curve25519-dalek-%{agave_curve25519_dalek_commit}.tar.gz
-
 Source102:  config.toml
 Source103:  activate
 Source104:  agave-validator.service
@@ -66,9 +54,7 @@ Source301:  https://static.rust-lang.org/dist/rust-%{rust_version}-aarch64-unkno
 
 Patch1001: jito01.patch
 
-Patch2002: 0002-Manually-vendor-the-patched-crossbeam.patch
-Patch2003: 0003-Manually-vendor-the-patched-tokio.patch
-Patch2004: 0004-Manually-vendor-the-patched-curve25519-dalek.patch
+Patch2001: fix-rocksdb-on-fedora-42.patch
 
 ExclusiveArch:  x86_64 aarch64
 
@@ -183,9 +169,6 @@ Solana/Agave tests and benchmarks (%{agave_suffix} version).
 %prep
 %setup -q -D -T -b0 -n agave-%{version}
 # We do not extract vendored sources here, check below.
-%setup -q -D -T -b2 -n agave-%{version}
-%setup -q -D -T -b3 -n agave-%{version}
-%setup -q -D -T -b4 -n agave-%{version}
 
 %ifarch x86_64
 %setup -q -D -T -b300 -n agave-%{version}
@@ -210,14 +193,7 @@ git am %{PATCH1001}
 %setup -q -D -T -b1 -n agave-%{version}
 
 # Apply all other patches.
-%patch -P 2002 -p1
-ln -sv ../crossbeam-%{agave_crossbeam_commit} ./agave-crossbeam
-
-%patch -P 2003 -p1
-ln -sv ../solana-tokio-%{agave_tokio_commit} ./solana-tokio
-
-%patch -P 2004 -p1
-ln -sv ../curve25519-dalek-%{agave_curve25519_dalek_commit} ./curve25519-dalek
+%patch -P 2001 -p1
 
 mkdir .cargo
 cp %{SOURCE102} .cargo/config.toml
@@ -275,8 +251,7 @@ cargo build %{__cargo_common_opts} --profile release-lto --frozen \
         --package solana-banking-bench \
         --package solana-bench-streamer \
         --package solana-merkle-root-bench \
-        --package solana-poh-bench \
-        --package solana-program:%{version}
+        --package solana-poh-bench
 %endif
 
 sed 's,__SUFFIX__,%{agave_suffix},g' \
@@ -330,15 +305,10 @@ rm ./target/release/*.rlib
 # Excluded because we do not need installers.
 rm \
         ./target/release/agave-install \
-        ./target/release/agave-install-init \
-        ./target/release/solana-ledger-udev
+        ./target/release/agave-install-init
 # Excluded.
 # TODO: Why? Official binary release does not contain these, only libagave_*_program.so installed.
 rm \
-        ./target/release/libsolana_frozen_abi_macro.so \
-        ./target/release/libsolana_package_metadata_macro.so \
-        ./target/release/libsolana_sdk_macro.so \
-        ./target/release/libsolana_sdk.so \
         ./target/release/libsolana_zk_sdk.so \
         ./target/release/libsolana_zk_token_sdk.so
 rm ./target/release/gen-syscall-list
@@ -346,15 +316,11 @@ rm ./target/release/gen-headers
 rm ./target/release/proto
 rm ./target/release/agave-cargo-registry
 
-mv ./target/release/*.so \
-        %{buildroot}/opt/agave/%{agave_suffix}/bin/deps/
 mv ./target/release/* \
         %{buildroot}/opt/agave/%{agave_suffix}/bin/
 
 %ifarch x86_64
 # Use binaries optimized for newer CPUs for running validator and local benchmarks.
-mv -f target/release-lto/*.so \
-         %{buildroot}/opt/agave/%{agave_suffix}/bin/deps/
 mv -f target/release-lto/agave-validator %{buildroot}/opt/agave/%{agave_suffix}/bin/
 mv -f target/release-lto/solana-accounts-bench %{buildroot}/opt/agave/%{agave_suffix}/bin/
 mv -f target/release-lto/solana-banking-bench %{buildroot}/opt/agave/%{agave_suffix}/bin/
@@ -397,9 +363,9 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 /opt/agave/%{agave_suffix}/bin/solana-merkle-root-generator
 /opt/agave/%{agave_suffix}/bin/solana-merkle-root-uploader
 /opt/agave/%{agave_suffix}/bin/solana-gossip
-/opt/agave/%{agave_suffix}/bin/solana-ip-address
 /opt/agave/%{agave_suffix}/bin/solana-log-analyzer
 /opt/agave/%{agave_suffix}/bin/solana-genesis
+/opt/agave/%{agave_suffix}/bin/agave-store-histogram
 
 
 %files deps
@@ -407,7 +373,6 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 %dir /opt/agave/%{agave_suffix}
 %dir /opt/agave/%{agave_suffix}/bin
 %dir /opt/agave/%{agave_suffix}/bin/deps
-/opt/agave/%{agave_suffix}/bin/deps/libsolana_program.so
 
 
 %files daemons
@@ -415,7 +380,6 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 %dir /opt/agave/%{agave_suffix}
 %dir /opt/agave/%{agave_suffix}/bin
 /opt/agave/%{agave_suffix}/bin/solana-faucet
-/opt/agave/%{agave_suffix}/bin/solana-ip-address-server
 /opt/agave/%{agave_suffix}/bin/agave-validator
 /opt/agave/%{agave_suffix}/bin/agave-watchtower
 /opt/agave/%{agave_suffix}/bin/agave-accounts-hash-cache-tool
@@ -423,6 +387,7 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 /opt/agave/%{agave_suffix}/bin/agave-store-tool
 /opt/agave/%{agave_suffix}/bin/solana-net-shaper
 /opt/agave/%{agave_suffix}/bin/solana-stake-meta-generator
+/opt/agave/%{agave_suffix}/bin/solana-vortexor
 
 %{_unitdir}/agave-validator-%{agave_suffix}.service
 %{_unitdir}/agave-watchtower-%{agave_suffix}.service
@@ -444,8 +409,6 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 %dir /opt/agave
 %dir /opt/agave/%{agave_suffix}
 %dir /opt/agave/%{agave_suffix}/bin
-/opt/agave/%{agave_suffix}/bin/cargo-build-bpf
-/opt/agave/%{agave_suffix}/bin/cargo-test-bpf
 /opt/agave/%{agave_suffix}/bin/rbpf-cli
 
 
@@ -466,6 +429,7 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 /opt/agave/%{agave_suffix}/bin/solana-banking-bench
 /opt/agave/%{agave_suffix}/bin/solana-bench-streamer
 /opt/agave/%{agave_suffix}/bin/solana-bench-tps
+/opt/agave/%{agave_suffix}/bin/solana-bench-vote
 /opt/agave/%{agave_suffix}/bin/solana-dos
 /opt/agave/%{agave_suffix}/bin/solana-merkle-root-bench
 /opt/agave/%{agave_suffix}/bin/solana-poh-bench
@@ -498,6 +462,9 @@ exit 0
 
 
 %changelog
+* Thu Mar 27 2025 Ivan Mironov <mironov.ivan@gmail.com> - 2.2.4-1jito
+- Update to 2.2.4
+
 * Sat Nov 16 2024 Ivan Mironov <mironov.ivan@gmail.com> - 2.0.16-1jito
 - Update to 2.0.16
 
