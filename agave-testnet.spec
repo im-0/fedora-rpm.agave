@@ -65,7 +65,6 @@ Source300:  https://static.rust-lang.org/dist/rust-%{rust_version}-x86_64-unknow
 Source301:  https://static.rust-lang.org/dist/rust-%{rust_version}-aarch64-unknown-linux-gnu.tar.gz
 
 Patch1001: jito01.patch
-Patch1002: jito02.patch
 
 Patch2002: 0002-Manually-vendor-the-patched-crossbeam.patch
 Patch2003: 0003-Manually-vendor-the-patched-tokio.patch
@@ -205,7 +204,6 @@ git init
 git add .
 git commit -m "import"
 git am %{PATCH1001}
-git am %{PATCH1002}
 
 # Extract vendored sources after applying Jito patch because it contains
 # git modules.
@@ -334,7 +332,7 @@ rm \
         ./target/release/agave-install \
         ./target/release/agave-install-init \
         ./target/release/solana-ledger-udev
-# Excluded. 
+# Excluded.
 # TODO: Why? Official binary release does not contain these, only libagave_*_program.so installed.
 rm \
         ./target/release/libsolana_frozen_abi_macro.so \
