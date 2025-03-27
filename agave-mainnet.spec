@@ -51,6 +51,8 @@ Source301:  https://static.rust-lang.org/dist/rust-%{rust_version}-aarch64-unkno
 
 Patch1001: jito01.patch
 
+Patch2001: fix-rocksdb-on-fedora-42.patch
+
 ExclusiveArch:  x86_64 aarch64
 
 BuildRequires:  findutils
@@ -186,6 +188,9 @@ git am %{PATCH1001}
 # Extract vendored sources after applying Jito patch because it contains
 # git modules.
 %setup -q -D -T -b1 -n agave-%{version}
+
+# Apply all other patches.
+%patch -P 2001 -p1
 
 mkdir .cargo
 cp %{SOURCE102} .cargo/config.toml
