@@ -1,4 +1,4 @@
-From e7d67e94fb5310d8f65b02c71d6c0c7921e6e09a Mon Sep 17 00:00:00 2001
+From 536d4cb2fa8318952df5efd272c182e5a7148b18 Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Tue, 17 Dec 2024 20:15:53 -0600
 Subject: [PATCH] Jito Patch only reroute if relayer connected (#123) feat: add
@@ -321,8 +321,8 @@ Add precompile checks in BundleStage (#787)
  .github/workflows/svm-exampls.yml             |   54 +
  .gitignore                                    |    5 +
  .gitmodules                                   |    9 +
- Cargo.lock                                    |  814 +++++++--
- Cargo.toml                                    |   21 +-
+ Cargo.lock                                    |  810 +++++++--
+ Cargo.toml                                    |   19 +-
  README.md                                     |   33 +-
  RELEASE.md                                    |   90 +-
  SECURITY.md                                   |  183 +-
@@ -425,7 +425,7 @@ Add precompile checks in BundleStage (#787)
  program-test/src/programs.rs                  |   18 +
  .../programs/jito_tip_distribution-0.1.4.so   |  Bin 0 -> 423080 bytes
  .../src/programs/jito_tip_payment-0.1.4.so    |  Bin 0 -> 430592 bytes
- programs/sbf/Cargo.lock                       |  646 ++++++--
+ programs/sbf/Cargo.lock                       |  642 +++++--
  programs/sbf/tests/programs.rs                |    4 +-
  rpc-client-api/src/bundles.rs                 |  120 ++
  rpc-client-api/src/lib.rs                     |    1 +
@@ -433,6 +433,7 @@ Add precompile checks in BundleStage (#787)
  rpc-client/src/nonblocking/rpc_client.rs      |   52 +
  rpc-client/src/rpc_client.rs                  |   16 +
  rpc-test/Cargo.toml                           |    1 +
+ rpc-test/tests/rpc.rs                         |    2 +
  rpc/Cargo.toml                                |    2 +
  rpc/src/rpc.rs                                |  552 ++++++-
  rpc/src/rpc_service.rs                        |    9 +-
@@ -497,7 +498,7 @@ Add precompile checks in BundleStage (#787)
  validator/src/main.rs                         |  290 +++-
  version/src/lib.rs                            |    2 +-
  wen-restart/src/wen_restart.rs                |    4 +-
- 190 files changed, 18718 insertions(+), 1195 deletions(-)
+ 191 files changed, 18715 insertions(+), 1190 deletions(-)
  create mode 100644 .dockerignore
  create mode 100644 .github/workflows/rebase.yaml
  create mode 100644 .github/workflows/svm-exampls.yml
@@ -1198,11 +1199,11 @@ index 00000000000..e31fc7fccd9
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index 4256838aced..3c83cd10e6d 100644
+index f18e42b1b2c..64a315126a3 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -158,7 +158,7 @@ name = "agave-ledger-tool"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "assert_cmd",
 - "bs58",
@@ -1586,15 +1587,9 @@ index 4256838aced..3c83cd10e6d 100644
  [[package]]
  name = "bs58"
  version = "0.5.1"
-@@ -1163,12 +1359,12 @@ dependencies = [
- 
- [[package]]
- name = "bytemuck_derive"
--version = "1.8.0"
-+version = "1.8.1"
+@@ -1167,8 +1363,8 @@ version = "1.8.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
--checksum = "bcfcc3cd946cb52f0bbfdbbcfa2f4e24f75ebb6c0e1002f7c25904fada18b9ec"
-+checksum = "3fa76293b4f7bb636ab88fd78228235b5248b4d05cc589aed610f954af5d7c7a"
+ checksum = "bcfcc3cd946cb52f0bbfdbbcfa2f4e24f75ebb6c0e1002f7c25904fada18b9ec"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -1890,7 +1885,7 @@ index 4256838aced..3c83cd10e6d 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.1.16"
++version = "2.1.17"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -2217,7 +2212,7 @@ index 4256838aced..3c83cd10e6d 100644
   "lazy_static",
   "serde",
 @@ -5699,7 +6033,7 @@ name = "solana-account-decoder-client-types"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "base64 0.22.1",
 - "bs58",
@@ -2239,7 +2234,7 @@ index 4256838aced..3c83cd10e6d 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.1.16"
++version = "2.1.17"
 +dependencies = [
 + "anchor-lang",
 + "assert_matches",
@@ -2262,8 +2257,8 @@ index 4256838aced..3c83cd10e6d 100644
 +
  [[package]]
  name = "solana-cargo-build-sbf"
- version = "2.1.16"
-@@ -6200,7 +6558,7 @@ version = "2.1.16"
+ version = "2.1.17"
+@@ -6200,7 +6558,7 @@ version = "2.1.17"
  dependencies = [
   "assert_matches",
   "bincode",
@@ -2273,7 +2268,7 @@ index 4256838aced..3c83cd10e6d 100644
   "console",
   "const_format",
 @@ -6428,12 +6786,13 @@ name = "solana-core"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "ahash 0.8.11",
 + "anchor-lang",
@@ -2337,7 +2332,7 @@ index 4256838aced..3c83cd10e6d 100644
  ]
  
 @@ -6751,7 +7120,7 @@ name = "solana-frozen-abi"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "bitflags 2.6.0",
 - "bs58",
@@ -2347,7 +2342,7 @@ index 4256838aced..3c83cd10e6d 100644
   "im",
 @@ -6771,8 +7140,8 @@ dependencies = [
  name = "solana-frozen-abi-macro"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2357,7 +2352,7 @@ index 4256838aced..3c83cd10e6d 100644
  ]
  
 @@ -6819,7 +7188,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -2366,7 +2361,7 @@ index 4256838aced..3c83cd10e6d 100644
   "json5",
   "jsonrpc-core",
 @@ -6898,7 +7267,7 @@ name = "solana-hash"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "borsh 1.5.1",
 - "bs58",
@@ -2376,14 +2371,14 @@ index 4256838aced..3c83cd10e6d 100644
   "js-sys",
 @@ -6953,7 +7322,7 @@ dependencies = [
  name = "solana-keygen"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
   "clap 3.2.23",
   "dirs-next",
   "num_cpus",
-@@ -6984,7 +7353,7 @@ version = "2.1.16"
+@@ -6984,7 +7353,7 @@ version = "2.1.17"
  dependencies = [
   "base64 0.22.1",
   "blake3",
@@ -2403,7 +2398,7 @@ index 4256838aced..3c83cd10e6d 100644
   "chrono",
 @@ -7274,8 +7643,8 @@ dependencies = [
  name = "solana-package-metadata-macro"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2430,7 +2425,7 @@ index 4256838aced..3c83cd10e6d 100644
   "bytemuck",
   "bytemuck_derive",
   "curve25519-dalek 4.1.3",
-@@ -7712,7 +8081,7 @@ version = "2.1.16"
+@@ -7712,7 +8081,7 @@ version = "2.1.17"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2464,7 +2459,7 @@ index 4256838aced..3c83cd10e6d 100644
   "crossbeam-channel",
   "futures 0.3.31",
   "indicatif",
-@@ -7805,7 +8176,7 @@ version = "2.1.16"
+@@ -7805,7 +8176,7 @@ version = "2.1.17"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -2474,7 +2469,7 @@ index 4256838aced..3c83cd10e6d 100644
   "jsonrpc-core",
   "reqwest",
 @@ -7844,13 +8215,14 @@ name = "solana-rpc-test"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2495,7 +2490,7 @@ index 4256838aced..3c83cd10e6d 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.1.16"
++version = "2.1.17"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -2513,8 +2508,8 @@ index 4256838aced..3c83cd10e6d 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.1.16"
-@@ -7994,10 +8384,11 @@ version = "2.1.16"
+ version = "2.1.17"
+@@ -7994,10 +8384,11 @@ version = "2.1.17"
  dependencies = [
   "anyhow",
   "assert_matches",
@@ -2529,7 +2524,7 @@ index 4256838aced..3c83cd10e6d 100644
   "byteorder",
 @@ -8066,9 +8457,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -2556,7 +2551,7 @@ index 4256838aced..3c83cd10e6d 100644
  
 @@ -8171,7 +8564,7 @@ dependencies = [
  name = "solana-signature"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2564,7 +2559,7 @@ index 4256838aced..3c83cd10e6d 100644
   "ed25519-dalek",
   "generic-array 0.14.7",
 @@ -8300,7 +8693,7 @@ name = "solana-storage-proto"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2587,7 +2582,7 @@ index 4256838aced..3c83cd10e6d 100644
  
 +[[package]]
 +name = "solana-tip-distributor"
-+version = "2.1.16"
++version = "2.1.17"
 +dependencies = [
 + "anchor-lang",
 + "clap 4.3.21",
@@ -2624,7 +2619,7 @@ index 4256838aced..3c83cd10e6d 100644
 +
  [[package]]
  name = "solana-tokens"
- version = "2.1.16"
+ version = "2.1.17"
 @@ -8699,7 +9129,7 @@ dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2634,7 +2629,7 @@ index 4256838aced..3c83cd10e6d 100644
   "lazy_static",
   "log",
   "serde",
-@@ -8723,7 +9153,7 @@ version = "2.1.16"
+@@ -8723,7 +9153,7 @@ version = "2.1.17"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2645,7 +2640,7 @@ index 4256838aced..3c83cd10e6d 100644
   "serde_json",
 @@ -8935,7 +9365,7 @@ dependencies = [
  name = "solana-zk-keygen"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2986,7 +2981,7 @@ index 4256838aced..3c83cd10e6d 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index b8851b18e00..25d97e67feb 100644
+index 6403b8e66f8..16ca2491d30 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -22,6 +22,7 @@ members = [
@@ -3044,20 +3039,11 @@ index b8851b18e00..25d97e67feb 100644
  ark-bn254 = "0.4.0"
  ark-ec = "0.4.0"
  ark-ff = "0.4.0"
-@@ -237,7 +248,7 @@ bv = "0.11.1"
- byte-unit = "4.0.19"
- bytecount = "0.6.8"
- bytemuck = "1.19.0"
--bytemuck_derive = "1.8.0"
-+bytemuck_derive = ">=1.8.1, <1.9.0"
- byteorder = "1.5.0"
- bytes = "1.8"
- bzip2 = "0.4.4"
 @@ -303,6 +314,9 @@ jemallocator = { package = "tikv-jemallocator", version = "0.4.1", features = [
      "unprefixed_malloc_on_supported_platforms",
  ] }
  js-sys = "0.3.72"
-+jito-protos = { path = "jito-protos", version = "=2.1.16" }
++jito-protos = { path = "jito-protos", version = "=2.1.17" }
 +jito-tip-distribution = { path = "jito-programs/mev-programs/programs/tip-distribution", features = ["no-entrypoint"] }
 +jito-tip-payment = { path = "jito-programs/mev-programs/programs/tip-payment", features = ["no-entrypoint"] }
  json5 = "0.4.1"
@@ -3071,22 +3057,22 @@ index b8851b18e00..25d97e67feb 100644
  lazy_static = "1.5.0"
  libc = "0.2.161"
  libloading = "0.7.4"
-@@ -400,6 +415,7 @@ solana-bn254 = { path = "curves/bn254", version = "=2.1.16" }
- solana-borsh = { path = "sdk/borsh", version = "=2.1.16" }
- solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.1.16" }
- solana-bucket-map = { path = "bucket_map", version = "=2.1.16" }
-+solana-bundle = { path = "bundle", version = "=2.1.16" }
- solana-builtins-default-costs = { path = "builtins-default-costs", version = "=2.1.16" }
- agave-cargo-registry = { path = "cargo-registry", version = "=2.1.16" }
- solana-clap-utils = { path = "clap-utils", version = "=2.1.16" }
-@@ -491,6 +507,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.1.16", default-features
- solana-rpc-client-api = { path = "rpc-client-api", version = "=2.1.16" }
- solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.1.16" }
- solana-runtime = { path = "runtime", version = "=2.1.16" }
-+solana-runtime-plugin = { path = "runtime-plugin", version = "=2.1.16" }
- solana-runtime-transaction = { path = "runtime-transaction", version = "=2.1.16" }
- solana-sdk = { path = "sdk", version = "=2.1.16" }
- solana-sdk-macro = { path = "sdk/macro", version = "=2.1.16" }
+@@ -401,6 +416,7 @@ solana-borsh = { path = "sdk/borsh", version = "=2.1.17" }
+ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.1.17" }
+ solana-bucket-map = { path = "bucket_map", version = "=2.1.17" }
+ solana-builtins-default-costs = { path = "builtins-default-costs", version = "=2.1.17" }
++solana-bundle = { path = "bundle", version = "=2.1.17" }
+ agave-cargo-registry = { path = "cargo-registry", version = "=2.1.17" }
+ solana-clap-utils = { path = "clap-utils", version = "=2.1.17" }
+ solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.1.17" }
+@@ -491,6 +507,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.1.17", default-features
+ solana-rpc-client-api = { path = "rpc-client-api", version = "=2.1.17" }
+ solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.1.17" }
+ solana-runtime = { path = "runtime", version = "=2.1.17" }
++solana-runtime-plugin = { path = "runtime-plugin", version = "=2.1.17" }
+ solana-runtime-transaction = { path = "runtime-transaction", version = "=2.1.17" }
+ solana-sdk = { path = "sdk", version = "=2.1.17" }
+ solana-sdk-macro = { path = "sdk/macro", version = "=2.1.17" }
 diff --git a/README.md b/README.md
 index 0d855e8cc85..4369c4bcb4d 100644
 --- a/README.md
@@ -22805,7 +22791,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index aecc901a4bf..9ce499dc202 100644
+index 269ff6376bf..2fd2b77d22c 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -131,6 +131,7 @@ dependencies = [
@@ -23128,15 +23114,9 @@ index aecc901a4bf..9ce499dc202 100644
  [[package]]
  name = "bs58"
  version = "0.5.1"
-@@ -874,12 +1027,12 @@ dependencies = [
- 
- [[package]]
- name = "bytemuck_derive"
--version = "1.8.0"
-+version = "1.8.1"
+@@ -878,8 +1031,8 @@ version = "1.8.0"
  source = "registry+https://github.com/rust-lang/crates.io-index"
--checksum = "bcfcc3cd946cb52f0bbfdbbcfa2f4e24f75ebb6c0e1002f7c25904fada18b9ec"
-+checksum = "3fa76293b4f7bb636ab88fd78228235b5248b4d05cc589aed610f954af5d7c7a"
+ checksum = "bcfcc3cd946cb52f0bbfdbbcfa2f4e24f75ebb6c0e1002f7c25904fada18b9ec"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -23337,7 +23317,7 @@ index aecc901a4bf..9ce499dc202 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.1.16"
++version = "2.1.17"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -23653,7 +23633,7 @@ index aecc901a4bf..9ce499dc202 100644
   "lazy_static",
   "serde",
 @@ -4817,7 +5086,7 @@ name = "solana-account-decoder-client-types"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "base64 0.22.1",
 - "bs58",
@@ -23675,7 +23655,7 @@ index aecc901a4bf..9ce499dc202 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.1.16"
++version = "2.1.17"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -23695,9 +23675,9 @@ index aecc901a4bf..9ce499dc202 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.1.16"
+ version = "2.1.17"
 @@ -5201,11 +5491,12 @@ name = "solana-core"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "ahash 0.8.11",
 + "anchor-lang",
@@ -23754,7 +23734,7 @@ index aecc901a4bf..9ce499dc202 100644
  ]
  
 @@ -5449,7 +5749,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -23763,7 +23743,7 @@ index aecc901a4bf..9ce499dc202 100644
   "json5",
   "jsonrpc-core",
 @@ -5523,7 +5823,7 @@ name = "solana-hash"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "borsh 1.5.1",
 - "bs58",
@@ -23771,7 +23751,7 @@ index aecc901a4bf..9ce499dc202 100644
   "bytemuck",
   "bytemuck_derive",
   "js-sys",
-@@ -5582,7 +5882,7 @@ version = "2.1.16"
+@@ -5582,7 +5882,7 @@ version = "2.1.17"
  dependencies = [
   "base64 0.22.1",
   "blake3",
@@ -23789,7 +23769,7 @@ index aecc901a4bf..9ce499dc202 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -6002,7 +6302,7 @@ version = "2.1.16"
+@@ -6002,7 +6302,7 @@ version = "2.1.17"
  dependencies = [
   "borsh 0.10.3",
   "borsh 1.5.1",
@@ -23798,7 +23778,7 @@ index aecc901a4bf..9ce499dc202 100644
   "bytemuck",
   "bytemuck_derive",
   "curve25519-dalek 4.1.3",
-@@ -6110,7 +6410,7 @@ version = "2.1.16"
+@@ -6110,7 +6410,7 @@ version = "2.1.17"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -23832,7 +23812,7 @@ index aecc901a4bf..9ce499dc202 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -6193,7 +6495,7 @@ version = "2.1.16"
+@@ -6193,7 +6495,7 @@ version = "2.1.17"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -23847,7 +23827,7 @@ index aecc901a4bf..9ce499dc202 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.1.16"
++version = "2.1.17"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -23865,10 +23845,10 @@ index aecc901a4bf..9ce499dc202 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.1.16"
+ version = "2.1.17"
 @@ -6833,10 +7153,11 @@ dependencies = [
  name = "solana-sdk"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
 + "base64 0.22.1",
   "bincode",
@@ -23881,7 +23861,7 @@ index aecc901a4bf..9ce499dc202 100644
   "byteorder 1.5.0",
 @@ -6896,9 +7217,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -23902,7 +23882,7 @@ index aecc901a4bf..9ce499dc202 100644
   "solana-runtime",
 @@ -6981,7 +7303,7 @@ dependencies = [
  name = "solana-signature"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -23910,7 +23890,7 @@ index aecc901a4bf..9ce499dc202 100644
   "generic-array",
   "rand 0.8.5",
 @@ -7070,7 +7392,7 @@ name = "solana-storage-proto"
- version = "2.1.16"
+ version = "2.1.17"
  dependencies = [
   "bincode",
 - "bs58",
@@ -23927,7 +23907,7 @@ index aecc901a4bf..9ce499dc202 100644
   "lazy_static",
   "log",
   "serde",
-@@ -7310,7 +7632,7 @@ version = "2.1.16"
+@@ -7310,7 +7632,7 @@ version = "2.1.17"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -24535,6 +24515,26 @@ index 435edafdc5f..f9bec675ea5 100644
 +serial_test = { workspace = true }
  solana-connection-cache = { workspace = true }
  solana-logger = { workspace = true }
+ 
+diff --git a/rpc-test/tests/rpc.rs b/rpc-test/tests/rpc.rs
+index 67d229d43a1..f3d801482e2 100644
+--- a/rpc-test/tests/rpc.rs
++++ b/rpc-test/tests/rpc.rs
+@@ -5,6 +5,7 @@ use {
+     log::*,
+     reqwest::{self, header::CONTENT_TYPE},
+     serde_json::{json, Value},
++    serial_test::serial,
+     solana_account_decoder::UiAccount,
+     solana_client::connection_cache::ConnectionCache,
+     solana_pubsub_client::nonblocking::pubsub_client::PubsubClient,
+@@ -283,6 +284,7 @@ fn test_rpc_slot_updates() {
+ }
+ 
+ #[test]
++#[serial]
+ fn test_rpc_subscriptions() {
+     solana_logger::setup();
  
 diff --git a/rpc/Cargo.toml b/rpc/Cargo.toml
 index f7bc16bd6f9..11a01cc80c5 100644
@@ -25245,10 +25245,10 @@ index 22d8ef01f42..09831a9cebc 100644
              None,
              receiver,
 diff --git a/rpc/src/rpc_service.rs b/rpc/src/rpc_service.rs
-index 28bd96684ee..01e00508bf7 100644
+index 4fae84abfda..7b9fbc0ecf1 100644
 --- a/rpc/src/rpc_service.rs
 +++ b/rpc/src/rpc_service.rs
-@@ -251,6 +251,7 @@ impl RequestMiddleware for RpcRequestMiddleware {
+@@ -252,6 +252,7 @@ impl RequestMiddleware for RpcRequestMiddleware {
                  let full_snapshot_archive_info =
                      snapshot_utils::get_highest_full_snapshot_archive_info(
                          &snapshot_config.full_snapshot_archives_dir,
@@ -25256,7 +25256,7 @@ index 28bd96684ee..01e00508bf7 100644
                      );
                  let snapshot_archive_info =
                      if let Some(full_snapshot_archive_info) = full_snapshot_archive_info {
-@@ -260,6 +261,7 @@ impl RequestMiddleware for RpcRequestMiddleware {
+@@ -261,6 +262,7 @@ impl RequestMiddleware for RpcRequestMiddleware {
                              snapshot_utils::get_highest_incremental_snapshot_archive_info(
                                  &snapshot_config.incremental_snapshot_archives_dir,
                                  full_snapshot_archive_info.slot(),
@@ -25264,7 +25264,7 @@ index 28bd96684ee..01e00508bf7 100644
                              )
                              .map(|incremental_snapshot_archive_info| {
                                  incremental_snapshot_archive_info
-@@ -374,11 +376,6 @@ impl JsonRpcService {
+@@ -410,11 +412,6 @@ impl JsonRpcService {
              LARGEST_ACCOUNTS_CACHE_DURATION,
          )));
  
@@ -25276,7 +25276,7 @@ index 28bd96684ee..01e00508bf7 100644
          let runtime = service_runtime(rpc_threads, rpc_blocking_threads, rpc_niceness_adj);
  
          let exit_bigtable_ledger_upload_service = Arc::new(AtomicBool::new(false));
-@@ -463,7 +460,7 @@ impl JsonRpcService {
+@@ -499,7 +496,7 @@ impl JsonRpcService {
          let leader_info =
              poh_recorder.map(|recorder| ClusterTpuInfo::new(cluster_info.clone(), recorder));
          let _send_transaction_service = Arc::new(SendTransactionService::new_with_config(
@@ -26347,7 +26347,7 @@ index 2a160fcc3ea..e6491b976a3 100644
              get_highest_bank_snapshot_post(&bank_snapshots_dir).unwrap();
          let highest_bank_snapshot_pre = get_highest_bank_snapshot_pre(&bank_snapshots_dir).unwrap();
 diff --git a/runtime/src/snapshot_utils.rs b/runtime/src/snapshot_utils.rs
-index 05abe3b74c4..748fb75c528 100644
+index f266ecc09d9..84d84d309b4 100644
 --- a/runtime/src/snapshot_utils.rs
 +++ b/runtime/src/snapshot_utils.rs
 @@ -704,7 +704,7 @@ pub fn get_highest_loadable_bank_snapshot(
@@ -26359,7 +26359,7 @@ index 05abe3b74c4..748fb75c528 100644
      let full_snapshot_file_slot =
          read_full_snapshot_slot_file(&highest_bank_snapshot.snapshot_dir).ok()?;
      (full_snapshot_file_slot == highest_full_snapshot_archive_slot).then_some(highest_bank_snapshot)
-@@ -2067,8 +2067,9 @@ pub fn get_incremental_snapshot_archives(
+@@ -2076,8 +2076,9 @@ pub fn get_incremental_snapshot_archives(
  /// Get the highest slot of the full snapshot archives in a directory
  pub fn get_highest_full_snapshot_archive_slot(
      full_snapshot_archives_dir: impl AsRef<Path>,
@@ -26370,7 +26370,7 @@ index 05abe3b74c4..748fb75c528 100644
          .map(|full_snapshot_archive_info| full_snapshot_archive_info.slot())
  }
  
-@@ -2077,10 +2078,12 @@ pub fn get_highest_full_snapshot_archive_slot(
+@@ -2086,10 +2087,12 @@ pub fn get_highest_full_snapshot_archive_slot(
  pub fn get_highest_incremental_snapshot_archive_slot(
      incremental_snapshot_archives_dir: impl AsRef<Path>,
      full_snapshot_slot: Slot,
@@ -26383,7 +26383,7 @@ index 05abe3b74c4..748fb75c528 100644
      )
      .map(|incremental_snapshot_archive_info| incremental_snapshot_archive_info.slot())
  }
-@@ -2088,8 +2091,13 @@ pub fn get_highest_incremental_snapshot_archive_slot(
+@@ -2097,8 +2100,13 @@ pub fn get_highest_incremental_snapshot_archive_slot(
  /// Get the path (and metadata) for the full snapshot archive with the highest slot in a directory
  pub fn get_highest_full_snapshot_archive_info(
      full_snapshot_archives_dir: impl AsRef<Path>,
@@ -26397,7 +26397,7 @@ index 05abe3b74c4..748fb75c528 100644
      full_snapshot_archives.sort_unstable();
      full_snapshot_archives.into_iter().next_back()
  }
-@@ -2099,6 +2107,7 @@ pub fn get_highest_full_snapshot_archive_info(
+@@ -2108,6 +2116,7 @@ pub fn get_highest_full_snapshot_archive_info(
  pub fn get_highest_incremental_snapshot_archive_info(
      incremental_snapshot_archives_dir: impl AsRef<Path>,
      full_snapshot_slot: Slot,
@@ -26405,7 +26405,7 @@ index 05abe3b74c4..748fb75c528 100644
  ) -> Option<IncrementalSnapshotArchiveInfo> {
      // Since we want to filter down to only the incremental snapshot archives that have the same
      // full snapshot slot as the value passed in, perform the filtering before sorting to avoid
-@@ -2110,6 +2119,9 @@ pub fn get_highest_incremental_snapshot_archive_info(
+@@ -2119,6 +2128,9 @@ pub fn get_highest_incremental_snapshot_archive_info(
                  incremental_snapshot_archive_info.base_slot() == full_snapshot_slot
              })
              .collect::<Vec<_>>();
@@ -26415,7 +26415,7 @@ index 05abe3b74c4..748fb75c528 100644
      incremental_snapshot_archives.sort_unstable();
      incremental_snapshot_archives.into_iter().next_back()
  }
-@@ -3145,7 +3157,7 @@ mod tests {
+@@ -3154,7 +3166,7 @@ mod tests {
          );
  
          assert_eq!(
@@ -26424,7 +26424,7 @@ index 05abe3b74c4..748fb75c528 100644
              Some(max_slot - 1)
          );
      }
-@@ -3171,7 +3183,8 @@ mod tests {
+@@ -3180,7 +3192,8 @@ mod tests {
              assert_eq!(
                  get_highest_incremental_snapshot_archive_slot(
                      incremental_snapshot_archives_dir.path(),
@@ -26434,7 +26434,7 @@ index 05abe3b74c4..748fb75c528 100644
                  ),
                  Some(max_incremental_snapshot_slot - 1)
              );
-@@ -3180,7 +3193,8 @@ mod tests {
+@@ -3189,7 +3202,8 @@ mod tests {
          assert_eq!(
              get_highest_incremental_snapshot_archive_slot(
                  incremental_snapshot_archives_dir.path(),
