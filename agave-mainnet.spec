@@ -22,8 +22,8 @@
 %global base_target_cpu_mtune generic
 
 Name:       agave-%{agave_suffix}
-# git f91c2fcac24eee5a40f10606540ef6e08d1b6655
-Version:    2.1.18
+# git 89985de3c6a8643f90af5dcb14bed23382bee088
+Version:    2.1.20
 Release:    100jito%{?dist}
 Summary:    Solana/Agave blockchain software (%{agave_suffix} version)
 
@@ -467,6 +467,9 @@ exit 0
 
 
 %changelog
+* Tue Apr 15 2025 Ivan Mironov <mironov.ivan@gmail.com> - 2.1.20-100jito
+- Update to 2.1.20
+
 * Sun Apr 06 2025 Ivan Mironov <mironov.ivan@gmail.com> - 2.1.18-100jito
 - Update to 2.1.18
 
