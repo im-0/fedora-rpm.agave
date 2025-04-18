@@ -1,4 +1,4 @@
-From 8738e9f05aed405e5d0da8119ce23efa8b17a96e Mon Sep 17 00:00:00 2001
+From fc16e985cbb08cb0a2002df7b7ed4c0d5a4e4fe6 Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Tue, 17 Dec 2024 20:15:53 -0600
 Subject: [PATCH] Jito Patch only reroute if relayer connected (#123) feat: add
@@ -1201,11 +1201,11 @@ index 00000000000..e31fc7fccd9
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index 276d5567dc2..adc2c0b4506 100644
+index 36381bd53e4..d22c442e81a 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -158,7 +158,7 @@ name = "agave-ledger-tool"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "assert_cmd",
 - "bs58",
@@ -1887,7 +1887,7 @@ index 276d5567dc2..adc2c0b4506 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.1.20"
++version = "2.1.21"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -2214,7 +2214,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "lazy_static",
   "serde",
 @@ -5699,7 +6033,7 @@ name = "solana-account-decoder-client-types"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "base64 0.22.1",
 - "bs58",
@@ -2236,7 +2236,7 @@ index 276d5567dc2..adc2c0b4506 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.1.20"
++version = "2.1.21"
 +dependencies = [
 + "anchor-lang",
 + "assert_matches",
@@ -2259,8 +2259,8 @@ index 276d5567dc2..adc2c0b4506 100644
 +
  [[package]]
  name = "solana-cargo-build-sbf"
- version = "2.1.20"
-@@ -6200,7 +6558,7 @@ version = "2.1.20"
+ version = "2.1.21"
+@@ -6200,7 +6558,7 @@ version = "2.1.21"
  dependencies = [
   "assert_matches",
   "bincode",
@@ -2270,7 +2270,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "console",
   "const_format",
 @@ -6428,12 +6786,13 @@ name = "solana-core"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "ahash 0.8.11",
 + "anchor-lang",
@@ -2334,7 +2334,7 @@ index 276d5567dc2..adc2c0b4506 100644
  ]
  
 @@ -6751,7 +7120,7 @@ name = "solana-frozen-abi"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "bitflags 2.6.0",
 - "bs58",
@@ -2344,7 +2344,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "im",
 @@ -6771,8 +7140,8 @@ dependencies = [
  name = "solana-frozen-abi-macro"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2354,7 +2354,7 @@ index 276d5567dc2..adc2c0b4506 100644
  ]
  
 @@ -6819,7 +7188,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -2363,7 +2363,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "json5",
   "jsonrpc-core",
 @@ -6898,7 +7267,7 @@ name = "solana-hash"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "borsh 1.5.1",
 - "bs58",
@@ -2373,14 +2373,14 @@ index 276d5567dc2..adc2c0b4506 100644
   "js-sys",
 @@ -6953,7 +7322,7 @@ dependencies = [
  name = "solana-keygen"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
   "clap 3.2.23",
   "dirs-next",
   "num_cpus",
-@@ -6984,7 +7353,7 @@ version = "2.1.20"
+@@ -6984,7 +7353,7 @@ version = "2.1.21"
  dependencies = [
   "base64 0.22.1",
   "blake3",
@@ -2400,7 +2400,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "chrono",
 @@ -7274,8 +7643,8 @@ dependencies = [
  name = "solana-package-metadata-macro"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
 - "proc-macro2",
 - "quote",
@@ -2427,7 +2427,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "bytemuck",
   "bytemuck_derive",
   "curve25519-dalek 4.1.3",
-@@ -7712,7 +8081,7 @@ version = "2.1.20"
+@@ -7712,7 +8081,7 @@ version = "2.1.21"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2461,7 +2461,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "crossbeam-channel",
   "futures 0.3.31",
   "indicatif",
-@@ -7805,7 +8176,7 @@ version = "2.1.20"
+@@ -7805,7 +8176,7 @@ version = "2.1.21"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -2471,7 +2471,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "jsonrpc-core",
   "reqwest",
 @@ -7844,13 +8215,14 @@ name = "solana-rpc-test"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2492,7 +2492,7 @@ index 276d5567dc2..adc2c0b4506 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.1.20"
++version = "2.1.21"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -2510,8 +2510,8 @@ index 276d5567dc2..adc2c0b4506 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.1.20"
-@@ -7994,10 +8384,11 @@ version = "2.1.20"
+ version = "2.1.21"
+@@ -7994,10 +8384,11 @@ version = "2.1.21"
  dependencies = [
   "anyhow",
   "assert_matches",
@@ -2526,7 +2526,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "byteorder",
 @@ -8066,9 +8457,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -2553,7 +2553,7 @@ index 276d5567dc2..adc2c0b4506 100644
  
 @@ -8171,7 +8564,7 @@ dependencies = [
  name = "solana-signature"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2561,7 +2561,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "ed25519-dalek",
   "generic-array 0.14.7",
 @@ -8300,7 +8693,7 @@ name = "solana-storage-proto"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2584,7 +2584,7 @@ index 276d5567dc2..adc2c0b4506 100644
  
 +[[package]]
 +name = "solana-tip-distributor"
-+version = "2.1.20"
++version = "2.1.21"
 +dependencies = [
 + "anchor-lang",
 + "clap 4.3.21",
@@ -2621,7 +2621,7 @@ index 276d5567dc2..adc2c0b4506 100644
 +
  [[package]]
  name = "solana-tokens"
- version = "2.1.20"
+ version = "2.1.21"
 @@ -8699,7 +9129,7 @@ dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2631,7 +2631,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "lazy_static",
   "log",
   "serde",
-@@ -8723,7 +9153,7 @@ version = "2.1.20"
+@@ -8723,7 +9153,7 @@ version = "2.1.21"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2642,7 +2642,7 @@ index 276d5567dc2..adc2c0b4506 100644
   "serde_json",
 @@ -8935,7 +9365,7 @@ dependencies = [
  name = "solana-zk-keygen"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2983,7 +2983,7 @@ index 276d5567dc2..adc2c0b4506 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index 2ac0c18c1b1..07524212ab8 100644
+index 1435ef19502..9064cc11ea1 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -22,6 +22,7 @@ members = [
@@ -3045,7 +3045,7 @@ index 2ac0c18c1b1..07524212ab8 100644
      "unprefixed_malloc_on_supported_platforms",
  ] }
  js-sys = "0.3.72"
-+jito-protos = { path = "jito-protos", version = "=2.1.20" }
++jito-protos = { path = "jito-protos", version = "=2.1.21" }
 +jito-tip-distribution = { path = "jito-programs/mev-programs/programs/tip-distribution", features = ["no-entrypoint"] }
 +jito-tip-payment = { path = "jito-programs/mev-programs/programs/tip-payment", features = ["no-entrypoint"] }
  json5 = "0.4.1"
@@ -3059,22 +3059,22 @@ index 2ac0c18c1b1..07524212ab8 100644
  lazy_static = "1.5.0"
  libc = "0.2.161"
  libloading = "0.7.4"
-@@ -401,6 +416,7 @@ solana-borsh = { path = "sdk/borsh", version = "=2.1.20" }
- solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.1.20" }
- solana-bucket-map = { path = "bucket_map", version = "=2.1.20" }
- solana-builtins-default-costs = { path = "builtins-default-costs", version = "=2.1.20" }
-+solana-bundle = { path = "bundle", version = "=2.1.20" }
- agave-cargo-registry = { path = "cargo-registry", version = "=2.1.20" }
- solana-clap-utils = { path = "clap-utils", version = "=2.1.20" }
- solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.1.20" }
-@@ -491,6 +507,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.1.20", default-features
- solana-rpc-client-api = { path = "rpc-client-api", version = "=2.1.20" }
- solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.1.20" }
- solana-runtime = { path = "runtime", version = "=2.1.20" }
-+solana-runtime-plugin = { path = "runtime-plugin", version = "=2.1.20" }
- solana-runtime-transaction = { path = "runtime-transaction", version = "=2.1.20" }
- solana-sdk = { path = "sdk", version = "=2.1.20" }
- solana-sdk-macro = { path = "sdk/macro", version = "=2.1.20" }
+@@ -401,6 +416,7 @@ solana-borsh = { path = "sdk/borsh", version = "=2.1.21" }
+ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.1.21" }
+ solana-bucket-map = { path = "bucket_map", version = "=2.1.21" }
+ solana-builtins-default-costs = { path = "builtins-default-costs", version = "=2.1.21" }
++solana-bundle = { path = "bundle", version = "=2.1.21" }
+ agave-cargo-registry = { path = "cargo-registry", version = "=2.1.21" }
+ solana-clap-utils = { path = "clap-utils", version = "=2.1.21" }
+ solana-clap-v3-utils = { path = "clap-v3-utils", version = "=2.1.21" }
+@@ -491,6 +507,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.1.21", default-features
+ solana-rpc-client-api = { path = "rpc-client-api", version = "=2.1.21" }
+ solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.1.21" }
+ solana-runtime = { path = "runtime", version = "=2.1.21" }
++solana-runtime-plugin = { path = "runtime-plugin", version = "=2.1.21" }
+ solana-runtime-transaction = { path = "runtime-transaction", version = "=2.1.21" }
+ solana-sdk = { path = "sdk", version = "=2.1.21" }
+ solana-sdk-macro = { path = "sdk/macro", version = "=2.1.21" }
 diff --git a/README.md b/README.md
 index 0d855e8cc85..4369c4bcb4d 100644
 --- a/README.md
@@ -22793,7 +22793,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index 2a73f59a459..4292207484c 100644
+index 9c08498a8e6..81d7bb75203 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -131,6 +131,7 @@ dependencies = [
@@ -23319,7 +23319,7 @@ index 2a73f59a459..4292207484c 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.1.20"
++version = "2.1.21"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -23635,7 +23635,7 @@ index 2a73f59a459..4292207484c 100644
   "lazy_static",
   "serde",
 @@ -4817,7 +5086,7 @@ name = "solana-account-decoder-client-types"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "base64 0.22.1",
 - "bs58",
@@ -23657,7 +23657,7 @@ index 2a73f59a459..4292207484c 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.1.20"
++version = "2.1.21"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -23677,9 +23677,9 @@ index 2a73f59a459..4292207484c 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.1.20"
+ version = "2.1.21"
 @@ -5201,11 +5491,12 @@ name = "solana-core"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "ahash 0.8.11",
 + "anchor-lang",
@@ -23736,7 +23736,7 @@ index 2a73f59a459..4292207484c 100644
  ]
  
 @@ -5449,7 +5749,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -23745,7 +23745,7 @@ index 2a73f59a459..4292207484c 100644
   "json5",
   "jsonrpc-core",
 @@ -5523,7 +5823,7 @@ name = "solana-hash"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "borsh 1.5.1",
 - "bs58",
@@ -23753,7 +23753,7 @@ index 2a73f59a459..4292207484c 100644
   "bytemuck",
   "bytemuck_derive",
   "js-sys",
-@@ -5582,7 +5882,7 @@ version = "2.1.20"
+@@ -5582,7 +5882,7 @@ version = "2.1.21"
  dependencies = [
   "base64 0.22.1",
   "blake3",
@@ -23771,7 +23771,7 @@ index 2a73f59a459..4292207484c 100644
   "bv",
   "bytemuck",
   "bytemuck_derive",
-@@ -6002,7 +6302,7 @@ version = "2.1.20"
+@@ -6002,7 +6302,7 @@ version = "2.1.21"
  dependencies = [
   "borsh 0.10.3",
   "borsh 1.5.1",
@@ -23780,7 +23780,7 @@ index 2a73f59a459..4292207484c 100644
   "bytemuck",
   "bytemuck_derive",
   "curve25519-dalek 4.1.3",
-@@ -6110,7 +6410,7 @@ version = "2.1.20"
+@@ -6110,7 +6410,7 @@ version = "2.1.21"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -23814,7 +23814,7 @@ index 2a73f59a459..4292207484c 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -6193,7 +6495,7 @@ version = "2.1.20"
+@@ -6193,7 +6495,7 @@ version = "2.1.21"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -23829,7 +23829,7 @@ index 2a73f59a459..4292207484c 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.1.20"
++version = "2.1.21"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -23847,10 +23847,10 @@ index 2a73f59a459..4292207484c 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.1.20"
+ version = "2.1.21"
 @@ -6833,10 +7153,11 @@ dependencies = [
  name = "solana-sdk"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
 + "base64 0.22.1",
   "bincode",
@@ -23863,7 +23863,7 @@ index 2a73f59a459..4292207484c 100644
   "byteorder 1.5.0",
 @@ -6896,9 +7217,9 @@ dependencies = [
  name = "solana-sdk-macro"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
 - "bs58",
 - "proc-macro2",
@@ -23884,7 +23884,7 @@ index 2a73f59a459..4292207484c 100644
   "solana-runtime",
 @@ -6981,7 +7303,7 @@ dependencies = [
  name = "solana-signature"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -23892,7 +23892,7 @@ index 2a73f59a459..4292207484c 100644
   "generic-array",
   "rand 0.8.5",
 @@ -7070,7 +7392,7 @@ name = "solana-storage-proto"
- version = "2.1.20"
+ version = "2.1.21"
  dependencies = [
   "bincode",
 - "bs58",
@@ -23909,7 +23909,7 @@ index 2a73f59a459..4292207484c 100644
   "lazy_static",
   "log",
   "serde",
-@@ -7310,7 +7632,7 @@ version = "2.1.20"
+@@ -7310,7 +7632,7 @@ version = "2.1.21"
  dependencies = [
   "base64 0.22.1",
   "bincode",
