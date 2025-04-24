@@ -1,4 +1,4 @@
-From 953eabf07d1ea3cd94fdbd09d1f7f90704a927b0 Mon Sep 17 00:00:00 2001
+From 317b4b8510f08dacffcf804c6c8459f5101202b8 Mon Sep 17 00:00:00 2001
 From: Lucas B <lucas@jito.wtf>
 Date: Tue, 17 Dec 2024 20:15:53 -0600
 Subject: [PATCH] Jito Patch
@@ -1121,7 +1121,7 @@ index 00000000000..e31fc7fccd9
 +	path = jito-protos/protos
 +	url = https://github.com/jito-labs/mev-protos.git
 diff --git a/Cargo.lock b/Cargo.lock
-index b45a1d92541..84327c7c6ae 100644
+index 1c646d4f0d5..54e88d631cf 100644
 --- a/Cargo.lock
 +++ b/Cargo.lock
 @@ -206,7 +206,7 @@ dependencies = [
@@ -1832,7 +1832,7 @@ index b45a1d92541..84327c7c6ae 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -2178,7 +2178,7 @@ index b45a1d92541..84327c7c6ae 100644
   "lazy_static",
   "serde",
 @@ -6164,7 +6498,7 @@ name = "solana-account-decoder-client-types"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "base64 0.22.1",
 - "bs58",
@@ -2200,7 +2200,7 @@ index b45a1d92541..84327c7c6ae 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "anchor-lang",
 + "assert_matches",
@@ -2225,7 +2225,7 @@ index b45a1d92541..84327c7c6ae 100644
 +
 +[[package]]
 +name = "solana-bundle-sdk"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "digest 0.10.7",
 + "itertools 0.12.1",
@@ -2236,7 +2236,7 @@ index b45a1d92541..84327c7c6ae 100644
 +
  [[package]]
  name = "solana-cargo-build-sbf"
- version = "2.2.11"
+ version = "2.2.12"
 @@ -6834,7 +7205,7 @@ dependencies = [
   "agave-feature-set",
   "assert_matches",
@@ -2333,7 +2333,7 @@ index b45a1d92541..84327c7c6ae 100644
  ]
  
 @@ -7858,7 +8241,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -2361,7 +2361,7 @@ index b45a1d92541..84327c7c6ae 100644
   "js-sys",
 @@ -8048,7 +8431,7 @@ dependencies = [
  name = "solana-keygen"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -2377,7 +2377,7 @@ index b45a1d92541..84327c7c6ae 100644
   "ed25519-dalek",
   "ed25519-dalek-bip32",
   "rand 0.7.3",
-@@ -8106,7 +8489,7 @@ version = "2.2.11"
+@@ -8106,7 +8489,7 @@ version = "2.2.12"
  dependencies = [
   "base64 0.22.1",
   "blake3",
@@ -2448,7 +2448,7 @@ index b45a1d92541..84327c7c6ae 100644
   "crossbeam-channel",
   "futures 0.3.31",
   "indicatif",
-@@ -9227,7 +9613,7 @@ version = "2.2.11"
+@@ -9227,7 +9613,7 @@ version = "2.2.12"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -2475,7 +2475,7 @@ index b45a1d92541..84327c7c6ae 100644
   "solana-transaction-status-client-types",
   "solana-version",
 @@ -9285,13 +9674,14 @@ name = "solana-rpc-test"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2496,7 +2496,7 @@ index b45a1d92541..84327c7c6ae 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -2514,7 +2514,7 @@ index b45a1d92541..84327c7c6ae 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.2.11"
+ version = "2.2.12"
 @@ -9483,7 +9891,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "e8af90d2ce445440e0548fa4a5f96fe8b265c22041a68c942012ffadd029667d"
  dependencies = [
@@ -2561,7 +2561,7 @@ index b45a1d92541..84327c7c6ae 100644
   "rand 0.8.5",
   "serde",
 @@ -9920,7 +10330,7 @@ name = "solana-storage-proto"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "bincode",
 - "bs58",
@@ -2575,7 +2575,7 @@ index b45a1d92541..84327c7c6ae 100644
  
 +[[package]]
 +name = "solana-tip-distributor"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "anchor-lang",
 + "clap 4.3.21",
@@ -2613,7 +2613,7 @@ index b45a1d92541..84327c7c6ae 100644
 +
  [[package]]
  name = "solana-tls-utils"
- version = "2.2.11"
+ version = "2.2.12"
 @@ -10559,7 +11007,7 @@ dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2623,7 +2623,7 @@ index b45a1d92541..84327c7c6ae 100644
   "bytemuck",
   "lazy_static",
   "log",
-@@ -10597,7 +11045,7 @@ version = "2.2.11"
+@@ -10597,7 +11045,7 @@ version = "2.2.12"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -2643,7 +2643,7 @@ index b45a1d92541..84327c7c6ae 100644
   "futures 0.3.31",
 @@ -10951,7 +11399,7 @@ dependencies = [
  name = "solana-zk-keygen"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
 - "bs58",
 + "bs58 0.5.1",
@@ -3016,7 +3016,7 @@ index b45a1d92541..84327c7c6ae 100644
  ]
  
 diff --git a/Cargo.toml b/Cargo.toml
-index 63725c9b3e4..99b4f32b7d9 100644
+index b5d7fae5560..ea69f43a3c0 100644
 --- a/Cargo.toml
 +++ b/Cargo.toml
 @@ -30,6 +30,8 @@ members = [
@@ -3079,7 +3079,7 @@ index 63725c9b3e4..99b4f32b7d9 100644
      "unprefixed_malloc_on_supported_platforms",
  ] }
  js-sys = "0.3.77"
-+jito-protos = { path = "jito-protos", version = "=2.2.11" }
++jito-protos = { path = "jito-protos", version = "=2.2.12" }
 +jito-tip-distribution = { path = "jito-programs/mev-programs/programs/tip-distribution", features = ["no-entrypoint"] }
 +jito-tip-payment = { path = "jito-programs/mev-programs/programs/tip-payment", features = ["no-entrypoint"] }
  json5 = "0.4.1"
@@ -3093,22 +3093,22 @@ index 63725c9b3e4..99b4f32b7d9 100644
  lazy_static = "1.5.0"
  libc = "0.2.170"
  libloading = "0.7.4"
-@@ -384,6 +400,8 @@ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.2.11"
- solana-bucket-map = { path = "bucket_map", version = "=2.2.11" }
- solana-builtins = { path = "builtins", version = "=2.2.11" }
- solana-builtins-default-costs = { path = "builtins-default-costs", version = "=2.2.11" }
-+solana-bundle = { path = "bundle", version = "=2.2.11" }
-+solana-bundle-sdk = { path = "bundle-sdk", version = "=2.2.11" }
- agave-cargo-registry = { path = "cargo-registry", version = "=2.2.11" }
- agave-thread-manager = { path = "thread-manager", version = "=2.2.11" }
- solana-clap-utils = { path = "clap-utils", version = "=2.2.11" }
-@@ -512,6 +530,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.2.11", default-features
- solana-rpc-client-api = { path = "rpc-client-api", version = "=2.2.11" }
- solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.2.11" }
- solana-runtime = { path = "runtime", version = "=2.2.11" }
-+solana-runtime-plugin = { path = "runtime-plugin", version = "=2.2.11" }
- solana-runtime-transaction = { path = "runtime-transaction", version = "=2.2.11" }
- solana-sbpf = "=0.10.0"
+@@ -384,6 +400,8 @@ solana-bpf-loader-program = { path = "programs/bpf_loader", version = "=2.2.12"
+ solana-bucket-map = { path = "bucket_map", version = "=2.2.12" }
+ solana-builtins = { path = "builtins", version = "=2.2.12" }
+ solana-builtins-default-costs = { path = "builtins-default-costs", version = "=2.2.12" }
++solana-bundle = { path = "bundle", version = "=2.2.12" }
++solana-bundle-sdk = { path = "bundle-sdk", version = "=2.2.12" }
+ agave-cargo-registry = { path = "cargo-registry", version = "=2.2.12" }
+ agave-thread-manager = { path = "thread-manager", version = "=2.2.12" }
+ solana-clap-utils = { path = "clap-utils", version = "=2.2.12" }
+@@ -512,6 +530,7 @@ solana-rpc-client = { path = "rpc-client", version = "=2.2.12", default-features
+ solana-rpc-client-api = { path = "rpc-client-api", version = "=2.2.12" }
+ solana-rpc-client-nonce-utils = { path = "rpc-client-nonce-utils", version = "=2.2.12" }
+ solana-runtime = { path = "runtime", version = "=2.2.12" }
++solana-runtime-plugin = { path = "runtime-plugin", version = "=2.2.12" }
+ solana-runtime-transaction = { path = "runtime-transaction", version = "=2.2.12" }
+ solana-sbpf = "=0.10.1"
  solana-sdk = "2.2.2"
 diff --git a/README.md b/README.md
 index de84929320c..c254405c2e0 100644
@@ -22964,7 +22964,7 @@ literal 0
 HcmV?d00001
 
 diff --git a/programs/sbf/Cargo.lock b/programs/sbf/Cargo.lock
-index d6131449dc6..63f7b60d1e6 100644
+index 95778b7e8af..1be316c0d5c 100644
 --- a/programs/sbf/Cargo.lock
 +++ b/programs/sbf/Cargo.lock
 @@ -189,6 +189,7 @@ dependencies = [
@@ -23526,7 +23526,7 @@ index d6131449dc6..63f7b60d1e6 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -23839,7 +23839,7 @@ index d6131449dc6..63f7b60d1e6 100644
   "lazy_static",
   "serde",
 @@ -5101,7 +5370,7 @@ name = "solana-account-decoder-client-types"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "base64 0.22.1",
 - "bs58",
@@ -23861,7 +23861,7 @@ index d6131449dc6..63f7b60d1e6 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -23885,7 +23885,7 @@ index d6131449dc6..63f7b60d1e6 100644
 +
 +[[package]]
 +name = "solana-bundle-sdk"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "digest 0.10.7",
 + "itertools 0.12.1",
@@ -23896,7 +23896,7 @@ index d6131449dc6..63f7b60d1e6 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.2.11"
+ version = "2.2.12"
 @@ -5727,12 +6032,13 @@ dependencies = [
   "agave-feature-set",
   "agave-transaction-view",
@@ -23957,7 +23957,7 @@ index d6131449dc6..63f7b60d1e6 100644
  ]
  
 @@ -6165,7 +6481,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -23983,7 +23983,7 @@ index d6131449dc6..63f7b60d1e6 100644
   "ed25519-dalek",
   "ed25519-dalek-bip32",
   "rand 0.7.3",
-@@ -6372,7 +6688,7 @@ version = "2.2.11"
+@@ -6372,7 +6688,7 @@ version = "2.2.12"
  dependencies = [
   "base64 0.22.1",
   "blake3",
@@ -24045,7 +24045,7 @@ index d6131449dc6..63f7b60d1e6 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -7290,7 +7609,7 @@ version = "2.2.11"
+@@ -7290,7 +7609,7 @@ version = "2.2.12"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -24077,7 +24077,7 @@ index d6131449dc6..63f7b60d1e6 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -24095,7 +24095,7 @@ index d6131449dc6..63f7b60d1e6 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.2.11"
+ version = "2.2.12"
 @@ -7966,7 +8306,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "e8af90d2ce445440e0548fa4a5f96fe8b265c22041a68c942012ffadd029667d"
  dependencies = [
@@ -24136,7 +24136,7 @@ index d6131449dc6..63f7b60d1e6 100644
   "rand 0.8.5",
   "serde",
 @@ -8353,7 +8694,7 @@ name = "solana-storage-proto"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "bincode",
 - "bs58",
@@ -24153,7 +24153,7 @@ index d6131449dc6..63f7b60d1e6 100644
   "lazy_static",
   "log",
   "serde",
-@@ -8828,7 +9169,7 @@ version = "2.2.11"
+@@ -8828,7 +9169,7 @@ version = "2.2.12"
  dependencies = [
   "base64 0.22.1",
   "bincode",
@@ -27242,7 +27242,7 @@ index 00000000000..66de0032dc3
 +cargo run --bin solana-ledger-tool -- -l config/bootstrap-validator/ create-snapshot 0
 +NDEBUG=1 ./multinode-demo/faucet.sh
 diff --git a/svm/examples/Cargo.lock b/svm/examples/Cargo.lock
-index 9dbccc0663b..adc3e70342e 100644
+index 04b780a2021..18dd8e3b71f 100644
 --- a/svm/examples/Cargo.lock
 +++ b/svm/examples/Cargo.lock
 @@ -193,6 +193,145 @@ version = "0.2.21"
@@ -27788,7 +27788,7 @@ index 9dbccc0663b..adc3e70342e 100644
 +
 +[[package]]
 +name = "jito-protos"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "bytes",
 + "prost",
@@ -28121,7 +28121,7 @@ index 9dbccc0663b..adc3e70342e 100644
   "lazy_static",
   "serde",
 @@ -4968,7 +5245,7 @@ name = "solana-account-decoder-client-types"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "base64 0.22.1",
 - "bs58",
@@ -28143,7 +28143,7 @@ index 9dbccc0663b..adc3e70342e 100644
  
 +[[package]]
 +name = "solana-bundle"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "anchor-lang",
 + "itertools 0.12.1",
@@ -28167,7 +28167,7 @@ index 9dbccc0663b..adc3e70342e 100644
 +
 +[[package]]
 +name = "solana-bundle-sdk"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "digest 0.10.7",
 + "itertools 0.12.1",
@@ -28178,7 +28178,7 @@ index 9dbccc0663b..adc3e70342e 100644
 +
  [[package]]
  name = "solana-clap-utils"
- version = "2.2.11"
+ version = "2.2.12"
 @@ -5594,12 +5907,13 @@ dependencies = [
   "agave-feature-set",
   "agave-transaction-view",
@@ -28239,7 +28239,7 @@ index 9dbccc0663b..adc3e70342e 100644
  ]
  
 @@ -5998,7 +6322,7 @@ name = "solana-geyser-plugin-manager"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "agave-geyser-plugin-interface",
 - "bs58",
@@ -28265,7 +28265,7 @@ index 9dbccc0663b..adc3e70342e 100644
   "ed25519-dalek",
   "ed25519-dalek-bip32",
   "rand 0.7.3",
-@@ -6205,7 +6529,7 @@ version = "2.2.11"
+@@ -6205,7 +6529,7 @@ version = "2.2.12"
  dependencies = [
   "base64 0.22.1",
   "blake3",
@@ -28327,7 +28327,7 @@ index 9dbccc0663b..adc3e70342e 100644
   "indicatif",
   "log",
   "reqwest",
-@@ -7123,7 +7450,7 @@ version = "2.2.11"
+@@ -7123,7 +7450,7 @@ version = "2.2.12"
  dependencies = [
   "anyhow",
   "base64 0.22.1",
@@ -28359,7 +28359,7 @@ index 9dbccc0663b..adc3e70342e 100644
  
 +[[package]]
 +name = "solana-runtime-plugin"
-+version = "2.2.11"
++version = "2.2.12"
 +dependencies = [
 + "crossbeam-channel",
 + "json5",
@@ -28377,7 +28377,7 @@ index 9dbccc0663b..adc3e70342e 100644
 +
  [[package]]
  name = "solana-runtime-transaction"
- version = "2.2.11"
+ version = "2.2.12"
 @@ -7297,7 +7645,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
  checksum = "e8af90d2ce445440e0548fa4a5f96fe8b265c22041a68c942012ffadd029667d"
  dependencies = [
@@ -28418,7 +28418,7 @@ index 9dbccc0663b..adc3e70342e 100644
   "rand 0.8.5",
   "serde",
 @@ -7684,7 +8033,7 @@ name = "solana-storage-proto"
- version = "2.2.11"
+ version = "2.2.12"
  dependencies = [
   "bincode",
 - "bs58",
@@ -28435,7 +28435,7 @@ index 9dbccc0663b..adc3e70342e 100644
   "lazy_static",
   "log",
   "serde",
-@@ -8177,7 +8526,7 @@ version = "2.2.11"
+@@ -8177,7 +8526,7 @@ version = "2.2.12"
  dependencies = [
   "base64 0.22.1",
   "bincode",
