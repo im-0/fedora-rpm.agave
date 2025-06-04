@@ -7,7 +7,7 @@
 %global agave_etc    %{_sysconfdir}/agave/%{agave_suffix}/
 
 # See ${AGAVE_SRC}/rust-toolchain.toml or ${AGAVE_SRC}/ci/rust-version.sh
-%global rust_version 1.81.0
+%global rust_version 1.84.1
 
 # Used only on x86_64:
 #
@@ -22,8 +22,8 @@
 %global base_target_cpu_mtune generic
 
 Name:       agave-%{agave_suffix}
-# git 8a085eebcb901b6846d1f82f4636667742146545
-Version:    2.1.21
+# git 7aff93a272470a2a7c4367701643e51a92c8aa4f
+Version:    2.2.15
 Release:    100jito%{?dist}
 Summary:    Solana/Agave blockchain software (%{agave_suffix} version)
 
@@ -248,8 +248,7 @@ cargo build %{__cargo_common_opts} --profile release-lto --frozen \
         --package solana-banking-bench \
         --package solana-bench-streamer \
         --package solana-merkle-root-bench \
-        --package solana-poh-bench \
-        --package solana-program:%{version}
+        --package solana-poh-bench
 %endif
 
 sed 's,__SUFFIX__,%{agave_suffix},g' \
@@ -307,10 +306,6 @@ rm \
 # Excluded.
 # TODO: Why? Official binary release does not contain these, only libagave_*_program.so installed.
 rm \
-        ./target/release/libsolana_frozen_abi_macro.so \
-        ./target/release/libsolana_package_metadata_macro.so \
-        ./target/release/libsolana_sdk_macro.so \
-        ./target/release/libsolana_sdk.so \
         ./target/release/libsolana_zk_sdk.so \
         ./target/release/libsolana_zk_token_sdk.so
 rm ./target/release/gen-syscall-list
@@ -318,15 +313,11 @@ rm ./target/release/gen-headers
 rm ./target/release/proto
 rm ./target/release/agave-cargo-registry
 
-mv ./target/release/*.so \
-        %{buildroot}/opt/agave/%{agave_suffix}/bin/deps/
 mv ./target/release/* \
         %{buildroot}/opt/agave/%{agave_suffix}/bin/
 
 %ifarch x86_64
 # Use binaries optimized for newer CPUs for running validator and local benchmarks.
-mv -f target/release-lto/*.so \
-         %{buildroot}/opt/agave/%{agave_suffix}/bin/deps/
 mv -f target/release-lto/agave-validator %{buildroot}/opt/agave/%{agave_suffix}/bin/
 mv -f target/release-lto/solana-accounts-bench %{buildroot}/opt/agave/%{agave_suffix}/bin/
 mv -f target/release-lto/solana-banking-bench %{buildroot}/opt/agave/%{agave_suffix}/bin/
@@ -379,7 +370,6 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 %dir /opt/agave/%{agave_suffix}
 %dir /opt/agave/%{agave_suffix}/bin
 %dir /opt/agave/%{agave_suffix}/bin/deps
-/opt/agave/%{agave_suffix}/bin/deps/libsolana_program.so
 
 
 %files daemons
@@ -394,6 +384,7 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 /opt/agave/%{agave_suffix}/bin/agave-store-tool
 /opt/agave/%{agave_suffix}/bin/solana-net-shaper
 /opt/agave/%{agave_suffix}/bin/solana-stake-meta-generator
+/opt/agave/%{agave_suffix}/bin/solana-vortexor
 
 %{_unitdir}/agave-validator-%{agave_suffix}.service
 %{_unitdir}/agave-watchtower-%{agave_suffix}.service
@@ -435,6 +426,7 @@ mv solana.bash-completion %{buildroot}/opt/agave/%{agave_suffix}/bin/solana.bash
 /opt/agave/%{agave_suffix}/bin/solana-banking-bench
 /opt/agave/%{agave_suffix}/bin/solana-bench-streamer
 /opt/agave/%{agave_suffix}/bin/solana-bench-tps
+/opt/agave/%{agave_suffix}/bin/solana-bench-vote
 /opt/agave/%{agave_suffix}/bin/solana-dos
 /opt/agave/%{agave_suffix}/bin/solana-merkle-root-bench
 /opt/agave/%{agave_suffix}/bin/solana-poh-bench
@@ -467,6 +459,9 @@ exit 0
 
 
 %changelog
+* Wed Jun 04 2025 Ivan Mironov <mironov.ivan@gmail.com> - 2.2.15-100jito
+- Update to 2.2.15
+
 * Sat Apr 19 2025 Ivan Mironov <mironov.ivan@gmail.com> - 2.1.21-100jito
 - Update to 2.1.21
 
